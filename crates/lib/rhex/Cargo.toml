@@ -1,0 +1,15 @@
+[package]
+name = "rhex"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_bytes = { workspace = true }
+serde-big-array = { workspace = true }
+blake3 = { workspace = true }
+serde_cbor = { workspace = true }
+rand = { workspace = true }
+anyhow = { workspace = true }
+ed25519-dalek = { workspace = true }
