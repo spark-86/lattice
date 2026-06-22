@@ -693,6 +693,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "processor"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "hex",
+ "libloading",
+ "rhex",
+ "serde",
+ "serde_cbor",
+ "serde_json",
+ "transform",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -747,6 +762,7 @@ name = "rhex"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64",
  "blake3",
  "ed25519-dalek",
  "rand",
@@ -761,12 +777,14 @@ dependencies = [
 name = "rhex-craft"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "base64",
  "clap",
  "key",
  "scope",
  "serde",
  "serde_cbor",
+ "serde_json",
 ]
 
 [[package]]
@@ -1019,6 +1037,8 @@ name = "transform"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "blake3",
+ "hex",
  "libloading",
  "rhex",
  "serde",
@@ -1065,6 +1085,7 @@ dependencies = [
  "lattice",
  "serde",
  "serde_cbor",
+ "time",
  "tokio",
  "tokio-util",
 ]

@@ -1,31 +1,15 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
+
+use cli::Commands;
 
 mod build;
-
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    Build {
-        prev: Option<String>,
-        scope: String,
-        author: String,
-        usher: String,
-        schema: Option<String>,
-        rt: String,
-        data: String,
-        output: String,
-    },
-}
+mod cli;
+mod genesis;
+mod view;
 
 fn main() {
     println!("Lattice R⬢ Crafting Tool {}", env!("CARGO_PKG_VERSION"));
-    let cli = Cli::parse();
+    let cli = cli::Cli::parse();
     match cli.command {
         Commands::Build {
             prev,
@@ -38,6 +22,12 @@ fn main() {
             output,
         } => {
             build::build(prev, scope, author, usher, schema, rt, data, output);
+        }
+        Commands::Genesis { key, output } => {
+            let _ = genesis::genesis(key, output);
+        }
+        Commands::View { input } => {
+            let _ = view::view(input);
         }
     }
 }

@@ -31,6 +31,8 @@ pub struct Scope {
     pub rhex: Vec<Rhex>,
     // The current hash of the last record in the chain.
     pub head: [u8; 32],
+    // Last updated
+    pub updated: u64,
 }
 
 impl Scope {
@@ -89,6 +91,7 @@ impl Scope {
             ushers: vec![(usher_key, 0)],
             rhex: vec![],
             head: [0; 32],
+            updated: 0,
         }
     }
 

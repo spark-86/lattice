@@ -11,7 +11,7 @@ impl Scope {
     /// scope. But the alternative is to give the transforms the
     /// ability to mod the access table and YIKES.
     ///
-    pub fn key_grant(&mut self, rhex_data: RhexData) -> Result<()> {
+    pub fn parse_key_grant(&mut self, rhex_data: RhexData) -> Result<()> {
         let (groups, members) = match rhex_data {
             RhexData::Mixed { meta, binary } => {
                 // Parse JSON
@@ -63,9 +63,11 @@ impl Scope {
     /// Pretty straight forward. Revokes all the keys in `binary`.
     /// I don't really have a place to put `reason` but it's here.
     ///
-    pub fn key_revoke(&mut self, rhex_data: RhexData) -> Result<()> {
+    pub fn parse_key_revoke(&mut self, rhex_data: RhexData) -> Result<()> {
         match rhex_data {
             RhexData::Mixed { meta, binary } => {
+                // I dunno... maybe return a Rhex with the reason?
+                let _reason = meta["reason"].as_str();
                 // Extract groups from JSON
                 let groups_json = meta["groups"]
                     .as_array()

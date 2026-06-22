@@ -1,39 +1,77 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fs, path::PathBuf};
 
 use anyhow::Result;
+use libloading::{Library, Symbol};
 
-use crate::{context::TransformContext, loaded::LoadedTransform};
+use crate::{
+    context::TransformContext, descriptor::DescriptorAction, entry::TranformEntry,
+    loaded::LoadedTransform, package::TransformPackage,
+};
 
 pub type Registry = HashMap<[u8; 32], LoadedTransform>;
-
-pub type RtMapping = HashMap<String, Vec<[u8; 32]>>;
+pub type MountingPoint = HashMap<String, Vec<[u8; 32]>>;
+pub type Mountings = HashMap<String, MountingPoint>;
+pub type Triggers = HashMap<DescriptorAction, Mountings>;
 
 pub struct TransformRegistry {
     pub registry: Registry,
-    pub rt_mapping: RtMapping,
+    pub triggers: Triggers,
 }
 
 impl TransformRegistry {
     pub fn new() -> Self {
         Self {
             registry: HashMap::new(),
-            rt_mapping: HashMap::new(),
+            triggers: HashMap::new(),
         }
     }
 
-    pub fn add_transform(&mut self, transform: LoadedTransform) {
-        let hash = transform.descriptor.hash.clone();
-        let hooks = transform.descriptor.rt_hooks.clone();
-        self.registry.insert(transform.descriptor.hash, transform);
-        for rt_hook in hooks {
-            let mapping = self.rt_mapping.entry(rt_hook.clone()).or_insert(Vec::new());
-            mapping.push(hash.clone());
+    pub fn add_transform(&mut self, mount: String, path: String) -> Result<()> {
+        // Load from disk first
+        let pkg = TransformPackage::disk_get(path)?;
+
+        // Verify hash
+        let hash = blake3::hash(&pkg.binary);
+        if hash.as_bytes() != &pkg.descriptor.hash {
+            anyhow::bail!("Failed hash verification loading transform!");
+        };
+
+        // clone to cache in case the package disappears
+        let path =
+            PathBuf::from(format!("./trans_cache/{}.dylib", hex::encode(hash.as_bytes())).as_str());
+        if !path.exists() {
+            fs::create_dir_all("./trans_cache/")?;
+            fs::write(&path, &pkg.binary)?;
         }
+
+        // dlopen
+        let lib = unsafe { Library::new(&path) }?;
+
+        // Load the symbol
+        let symbol: Symbol<*const TranformEntry> = unsafe { lib.get(b"RHEX_TRANSFORM")? };
+
+        // Safety: symbol points into the loaded library which we are running
+        let entry_ref: &'static TranformEntry = unsafe { &**symbol };
+
+        // Insert into the registry
+        self.registry.insert(
+            hash.as_bytes().clone(),
+            LoadedTransform {
+                descriptor: pkg.descriptor.clone(),
+                entry: entry_ref,
+                library: lib,
+            },
+        );
+
+        // Mount the trigger
+        self.mount(mount, pkg.descriptor.clone())?;
+
+        Ok(())
     }
 
     pub fn remove_transform(&mut self, hash: [u8; 32]) {
         self.registry.remove(&hash);
-        self.rt_mapping.retain(|_, v| !v.contains(&hash));
+        // TODO: make it remove the hooks too
     }
 
     /// # run

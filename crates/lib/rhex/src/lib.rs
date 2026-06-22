@@ -31,6 +31,7 @@ pub mod context;
 pub mod data;
 pub mod data_bytes;
 pub mod intent;
+pub mod print;
 pub mod signature;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-pub use scope::Scope;
+pub use scope;
 pub use scope::rhex;
 pub use scope::rhex::Rhex;
 pub use usher;
@@ -9,7 +9,7 @@ pub mod bootstrap;
 pub mod startup;
 
 pub struct Lattice {
-    pub scopes: HashMap<String, Scope>,
+    pub scopes: HashMap<String, scope::Scope>,
     pub ushers: usher::UsherMap,
     pub gt: u64,
 }
@@ -31,7 +31,7 @@ impl Lattice {
         }
     }
 
-    pub fn add_scope(&mut self, scope: Scope) {
+    pub fn add_scope(&mut self, scope: scope::Scope) {
         self.scopes.insert(scope.name.clone(), scope);
     }
 

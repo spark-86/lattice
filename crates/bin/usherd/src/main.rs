@@ -5,6 +5,7 @@ use std::{error::Error, path::PathBuf, str::FromStr};
 
 pub mod cli;
 pub mod client;
+pub mod process;
 pub mod rebuild;
 pub mod server;
 

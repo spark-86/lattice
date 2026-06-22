@@ -29,7 +29,8 @@ pub fn rebuild(path: String) -> Result<Lattice> {
     }
 
     // Make the root scope an object
-    let mut root_scope = lattice::Scope::new("".to_string(), Some(lattice::Lattice::GENESIS_KEY));
+    let mut root_scope =
+        lattice::scope::Scope::new("".to_string(), Some(lattice::Lattice::GENESIS_KEY));
     // ...and populate it
     root_scope.rhex = root_rhex;
     root_scope.head = root_scope.rhex[root_scope.rhex.len() - 1].calc_curr();

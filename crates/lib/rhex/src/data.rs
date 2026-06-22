@@ -1,4 +1,5 @@
 use crate::data_bytes;
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use serde::{Deserialize, Serialize};
 use serde_bytes;
 
@@ -16,4 +17,23 @@ pub enum RhexData {
         #[serde(with = "data_bytes")]
         binary: Vec<Vec<u8>>,
     },
+}
+
+impl RhexData {
+    pub fn print(&self) -> String {
+        match self {
+            RhexData::None => "None".to_string(),
+            RhexData::Json(json) => serde_json::to_string(json).unwrap(),
+            RhexData::Binary { data } => URL_SAFE_NO_PAD.encode(data),
+            RhexData::Mixed { meta, binary } => {
+                let meta_str = serde_json::to_string(meta).unwrap();
+                let binary_str = binary
+                    .iter()
+                    .map(|b| URL_SAFE_NO_PAD.encode(b))
+                    .collect::<Vec<String>>()
+                    .join(",");
+                format!("Meta: {}\n\t\tBinary: {}", meta_str, binary_str)
+            }
+        }
+    }
 }

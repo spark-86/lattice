@@ -8,7 +8,7 @@ impl Policy {
     ///
     pub fn can_submit(&self, rt: &String, groups: &Vec<String>) -> bool {
         for rule in &self.rules {
-            if rule.rt[rule.rt.len() - 1] == "*" {
+            if rule.rt.ends_with(&[":*".to_string()]) {
                 let rt_super = rt[..rt.len() - 1].to_string();
                 if rule.rt.starts_with(&vec![rt_super]) {
                     for g in rule.append.clone() {

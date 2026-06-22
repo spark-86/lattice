@@ -1,8 +1,12 @@
+pub mod access;
+pub mod access_pair;
 pub mod context;
 pub mod descriptor;
 pub mod entry;
 pub mod error;
 pub mod loaded;
+pub mod mount;
 pub mod output;
+pub mod package;
 pub mod registry;
 pub mod result;

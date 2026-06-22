@@ -14,3 +14,4 @@ key = { path = "../../lib/key" }
 clap = { workspace = true }
 base64 = { workspace = true }
 anyhow = { workspace = true }
+time = { path = "../../lib/time" }
