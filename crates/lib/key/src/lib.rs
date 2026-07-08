@@ -2,6 +2,8 @@ use base64::{Engine, engine};
 use ed25519_dalek::{Signature, Signer, Verifier};
 use serde::{Deserialize, Serialize};
 
+pub mod enclave;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Key {
     #[serde(with = "serde_bytes")]
@@ -30,14 +32,14 @@ impl Key {
         }
     }
 
-    pub fn generate() -> Self {
+    pub fn generate(name: Option<String>) -> Self {
         let seed: [u8; 32] = rand::random();
         let dalek_sk = ed25519_dalek::SigningKey::from_bytes(&seed);
         let pk = dalek_sk.verifying_key().to_bytes();
         Self {
             sk: Some(dalek_sk.to_bytes()),
             pk: Some(pk),
-            name: None,
+            name,
         }
     }
 
@@ -64,15 +66,6 @@ impl Key {
 
     pub fn from_vec(data: Vec<u8>) -> Self {
         serde_cbor::from_slice(&data).unwrap()
-    }
-
-    pub fn disk_get(path: &str) -> Self {
-        let data = std::fs::read(path).unwrap();
-        Self::from_vec(data)
-    }
-
-    pub fn disk_put(&self, path: &str) {
-        std::fs::write(path, &self.to_vec()).unwrap();
     }
 
     /// This generates the SigilID from the key.

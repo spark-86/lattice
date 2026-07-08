@@ -1,4 +1,3 @@
-use ed25519_dalek::{Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 
 /*
@@ -33,6 +32,7 @@ pub mod data_bytes;
 pub mod intent;
 pub mod print;
 pub mod signature;
+pub mod validate;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rhex {
@@ -116,25 +116,6 @@ impl Rhex {
 
     pub fn disk_put(&self, path: &str) {
         std::fs::write(path, &self.to_vec()).unwrap();
-    }
-
-    pub fn validate_sig(&self, sig_type: RhexSignatureType, pos: usize) -> bool {
-        let hash = self.get_hash(sig_type);
-        let sig = ed25519_dalek::Signature::from_bytes(&self.sigs[pos].sig);
-        let pk = match VerifyingKey::from_bytes(&self.sigs[pos].pk) {
-            Ok(pk) => pk,
-            Err(e) => {
-                println!("Invalid public key type: {:?}", e);
-                return false;
-            }
-        };
-        match pk.verify(&hash, &sig) {
-            Ok(_) => true,
-            Err(e) => {
-                println!("Invalid signature: {:?}", e);
-                false
-            }
-        }
     }
 
     pub fn validate_curr(&self) -> bool {

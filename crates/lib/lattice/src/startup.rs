@@ -4,9 +4,8 @@ use scope::Scope;
 use crate::Lattice;
 
 impl Lattice {
-    pub fn startup(&mut self, path: String) -> Result<()> {
-        let scope_cache_path = format!("{}/scopes", path);
-        let scopes_dir_entries = std::fs::read_dir(&scope_cache_path)?;
+    pub fn startup(&mut self, path: &String) -> Result<()> {
+        let scopes_dir_entries = std::fs::read_dir(path)?;
         for entry in scopes_dir_entries {
             let entry = entry?;
             // skip if its a file

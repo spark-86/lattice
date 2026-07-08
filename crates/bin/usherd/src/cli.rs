@@ -6,6 +6,9 @@ use clap::{Parser, Subcommand};
 #[command(name = "usherd")]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
+    #[arg(short, long, default_value = "config.json")]
+    pub config: PathBuf,
+
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -13,11 +16,32 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     Listen {
-        #[arg(short, long, default_value_t = 1984)]
-        port: u16,
+        #[arg(short, long)]
+        port: Option<u16>,
+
+        #[arg(short, long)]
+        rebuild: bool,
 
         #[arg(long)]
-        rebuild: bool,
+        root: Option<String>,
+
+        #[arg(long)]
+        enclave: Option<String>,
+
+        #[arg(long)]
+        scopes: Option<String>,
+
+        #[arg(long)]
+        i_am: Option<String>,
+
+        #[arg(long)]
+        transform_registry: Option<String>,
+
+        #[arg(long)]
+        usher_map: Option<String>,
+
+        #[arg(long)]
+        bootstrap: Option<String>,
     },
     Send {
         #[arg(short, long)]

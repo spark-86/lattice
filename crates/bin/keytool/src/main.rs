@@ -11,10 +11,13 @@ mod view;
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cli {
-    /// Keyfile to work with. On signing it's used to pull a key,
-    /// on generation it serves as an output
+    /// This is the key in base64 format that we will be using
+    /// to pull from the enclave
     #[arg(short, long, global = true)]
-    keyfile: Option<String>,
+    key: Option<String>,
+
+    #[arg(short, long, global = true)]
+    enclave_path: Option<String>,
 
     #[command(subcommand)]
     command: Commands,
@@ -57,27 +60,30 @@ enum Commands {
 fn main() {
     println!("Lattice Key Tool v{}", env!("CARGO_PKG_VERSION"));
     let cli = Cli::parse();
-    if cli.keyfile.is_none() {
-        println!("Must specify keyfile (-k)");
+    if cli.key.is_none() {
+        println!("Must specify key in base64 format (-k)");
         return;
     }
-
+    let enclave_path = match cli.enclave_path {
+        Some(ep) => ep,
+        None => "./keys".to_string(),
+    };
     match cli.command {
         Commands::Sign {
             sig_type,
             input,
             output,
         } => {
-            sign::sign(&cli.keyfile.unwrap(), &sig_type, &input, &output);
+            let _ = sign::sign(&cli.key.unwrap(), &enclave_path, &sig_type, &input, &output);
         }
         Commands::Generate { name } => {
-            generate::generate(name, cli.keyfile.unwrap());
+            let _ = generate::generate(name, cli.key.unwrap());
         }
         Commands::View { secret, rust } => {
-            view::view(&cli.keyfile.unwrap(), secret, rust);
+            view::view(&cli.key.unwrap(), secret, rust);
         }
         Commands::Vanity { sigil_prefix, name } => {
-            vanity::vanity(sigil_prefix, name, cli.keyfile.unwrap());
+            vanity::vanity(sigil_prefix, name, cli.key.unwrap());
         }
     }
 }

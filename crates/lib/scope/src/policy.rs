@@ -1,3 +1,4 @@
+use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::rule::Rule;
@@ -151,5 +152,23 @@ impl Policy {
             self.rules.push(key_rule);
         }
         !self.is_dangerous()
+    }
+
+    pub fn get_k(&self, rt: &String, groups: &Vec<String>) -> Result<u16> {
+        for rule in &self.rules {
+            if rule.valid(rt, groups)? {
+                return Ok(rule.k);
+            }
+        }
+        Err(anyhow::anyhow!("Not a valid rule axis"))
+    }
+
+    pub fn get_window(&self, rt: &String, groups: &Vec<String>) -> Result<u64> {
+        for rule in &self.rules {
+            if rule.valid(rt, groups)? {
+                return Ok(rule.window);
+            }
+        }
+        Err(anyhow::anyhow!("Not a valid rule axis"))
     }
 }

@@ -14,7 +14,7 @@ impl Scope {
         let mut done = false;
         let genesis = rhex::Rhex::disk_get(format!("{}/genesis.rhex", path).as_str());
         let scope_name = genesis.intent.scope.clone();
-        let mut scope = Scope::new(scope_name.clone(), Some(genesis.intent.author.clone()));
+        let mut scope = Scope::new(scope_name.clone(), genesis.intent.author.clone());
 
         let mut next = genesis.curr;
         while !done {
@@ -43,7 +43,7 @@ impl Scope {
                     // files outside of the usher?
                     done = true;
                 }
-                scope.head = rhex.calc_curr();
+                scope.head = Some(rhex.calc_curr());
             } else {
                 done = true;
             }

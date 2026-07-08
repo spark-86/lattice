@@ -2,20 +2,19 @@ use anyhow::Result;
 use futures::{SinkExt, StreamExt};
 use lattice::Rhex;
 
-use crate::rebuild;
+use crate::{config::UsherdConfig, rebuild};
 
-pub async fn run(port: u16, rebuild: bool) -> Result<()> {
-    let addr = format!("0.0.0.0:{}", port);
+pub async fn run(config: UsherdConfig) -> Result<()> {
+    let addr = format!("0.0.0.0:{}", config.port);
 
     // If rebuild=true we fire off the rebuilt bootstrap procedure,
     // otherwise we build from our existing cache
 
-    let lattice = if rebuild {
-        rebuild::rebuild("./".to_string()).unwrap()
+    let lattice = if config.rebuild {
+        rebuild::rebuild(&config).unwrap()
     } else {
         let mut building_lattice = lattice::Lattice::new();
-        let status = building_lattice.startup("./".to_string());
-        status.unwrap();
+        building_lattice.startup(&config.scopes)?;
         building_lattice
     };
     println!("🧬 Lattice is live! {} scopes loaded", lattice.scopes.len());
@@ -46,6 +45,10 @@ async fn handle_connection(stream: tokio::net::TcpStream) -> Result<()> {
         // 2. Decode using serde_cbor
         let rhex_list: Vec<Rhex> = serde_cbor::from_slice(&bytes)?;
         println!("Received {} items", rhex_list.len());
+
+        for _rhex in &rhex_list {
+            // Append rhex here
+        }
 
         let response = serde_cbor::to_vec(&rhex_list)?;
 

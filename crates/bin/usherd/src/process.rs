@@ -1,17 +1,32 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    collections::{HashMap, hash_map::Entry},
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 use anyhow::Result;
-use lattice::{Lattice, Rhex, scope::Scope};
+use lattice::{
+    Lattice, Rhex,
+    rhex::data::RhexData,
+    scope::{Scope, policy::Policy},
+};
 use serde::{Deserialize, Serialize};
 use time::MicroMarks;
+use transform::{
+    context::TransformContext, descriptor::DescriptorAction, output::TransformOutput,
+    registry::TransformRegistry,
+};
 
-pub fn walk(rhex: Vec<Rhex>) -> Result<(ScopeWalkResult, Option<Scope>)> {
+pub fn walk(
+    rhex: Vec<Rhex>,
+    registry: &mut TransformRegistry,
+) -> Result<(ScopeWalkResult, Option<Scope>)> {
+    // If there's no R⬢, there can be no scope.
     if rhex.len() == 0 {
-        return Ok((ScopeWalkResult::Unknown, None));
+        return Ok((ScopeWalkResult::ZeroLength, None));
     }
+    // Get the scope name from the first R⬢
     let scope = rhex[0].intent.scope.clone();
-
-    let mut working_scope = Scope::new(scope, Some(Lattice::GENESIS_KEY));
+    let mut working_scope = Scope::new(scope.clone(), Lattice::GENESIS_KEY);
     let mut pos = 0;
 
     for r in &rhex {
@@ -28,14 +43,24 @@ pub fn walk(rhex: Vec<Rhex>) -> Result<(ScopeWalkResult, Option<Scope>)> {
         }
 
         // We check to make sure the current policy allows for this
-        // submission
-        let mut user_groups = Vec::new();
-        for (name, members) in working_scope.groups.iter() {
-            if members.contains(&r.intent.author) {
-                user_groups.push(name.clone());
-            }
+        // submission.
+        //
+        // First we collect all the groups our author could be in
+        let user_groups =
+            working_scope.member_of_at(r.intent.author.clone(), r.context.at.clone())?;
+        if user_groups.len() == 0 {
+            return Ok((
+                ScopeWalkResult::PolicyViolation {
+                    chain_pos: pos,
+                    violation: PolicyViolation::InvalidKey,
+                },
+                None,
+            ));
         }
-        let result = working_scope.policy.can_submit(&r.intent.rt, &user_groups);
+        // Grab the policy at this micromark
+        let working_policy = working_scope.get_policy_at(r.context.at.clone());
+        // Can we append with this policy?
+        let result = working_policy.can_submit(&r.intent.rt, &user_groups);
         if !result {
             return Ok((
                 ScopeWalkResult::PolicyViolation {
@@ -47,12 +72,73 @@ pub fn walk(rhex: Vec<Rhex>) -> Result<(ScopeWalkResult, Option<Scope>)> {
         }
 
         // Now we append
-        // TODO: Call out to Processor for validation outside our
-        // core checks
+        // First we check for policy/key records, because we should be
+        // the one that processes them first.
+        match r.intent.rt.as_str() {
+            "policy:set" => {
+                let policy_bin = match &r.intent.data {
+                    RhexData::Binary { data } => data,
+                    _ => anyhow::bail!("Invalid data type for policy!"),
+                };
+                let policy: Policy = serde_cbor::from_slice(&policy_bin).unwrap();
+                working_scope
+                    .policy_map
+                    .insert((policy.eff, policy.exp), policy);
+            }
+            _ => {}
+        }
 
+        // What this requires is walking the triggers hashmap for this
+        // scope we are looking at. We fire each one per hash.
+        let action_set = registry
+            .triggers
+            .entry(DescriptorAction::Validate)
+            .or_insert(HashMap::new());
+        let scope_set = action_set.entry(scope.clone()).or_insert(HashMap::new());
+        let rt = scope_set.entry(r.intent.rt.clone()).or_insert(Vec::new());
+        'outer: for entry in rt {
+            match registry.registry.entry(*entry) {
+                Entry::Occupied(occ) => {
+                    let transform = occ.get();
+                    // TODO: Add input gathering
+                    let mut ctx = TransformContext {
+                        input: &r.to_vec(),
+                        output: &mut None,
+                        diag: &mut None,
+                    };
+                    println!("Firing transform {}...", transform.descriptor.name);
+                    // FIRE!
+                    let result = (transform.entry.entry)(&mut ctx);
+                    if result > 0 {
+                        // aw shit... :(
+                        let output: TransformOutput =
+                            serde_cbor::from_slice(&ctx.output.clone().unwrap()).unwrap();
+                        println!(
+                            "Error occured with transform {}, returned {}",
+                            transform.descriptor.name, result
+                        );
+                        if output.err.is_some() {
+                            let errors = output.err.clone().unwrap();
+                            for err in errors {
+                                println!("{:?}", err);
+                            }
+                        }
+                        // if any of the errors are considered fatal, we
+                        // halt any further transform action. This is
+                        // to prevent a run away or for it to keep churning
+                        // garbage data.
+                        if output.fatal_error() {
+                            println!("💀 FATAL ERROR! Execution halted.");
+                            break 'outer;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
         // Actually attach to the working scope
         working_scope.add_rhex(r.clone());
-        working_scope.head = r.curr.unwrap();
+        working_scope.head = r.curr;
         let time = SystemTime::now();
         let time = time
             .duration_since(UNIX_EPOCH)
@@ -70,23 +156,25 @@ pub fn walk(rhex: Vec<Rhex>) -> Result<(ScopeWalkResult, Option<Scope>)> {
 pub enum ScopeWalkResult {
     // Success, with the record count we walked
     Success(u64),
-    // Failed basic Rhex validation
+    // Failed basic R⬢ validation
     FailedValidation {
         chain_pos: u64,
         hash: Option<[u8; 32]>,
         reason: String,
     },
-    // The previous record does not line up with the current
+    // The previous R⬢ does not line up with the current
     LinkMismatch {
         prev_rhex: [u8; 32],
         intent_prev: Option<[u8; 32]>,
         curr: [u8; 32],
     },
-    // A Rhex was submitted outside the policy
+    // A R⬢ was submitted outside the policy
     PolicyViolation {
         chain_pos: u64,
         violation: PolicyViolation,
     },
+    // In case there's no R⬢ in the scope
+    ZeroLength,
     // ???
     Unknown,
 }

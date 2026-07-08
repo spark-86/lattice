@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -8,4 +9,24 @@ pub struct Rule {
     pub delay: u64,
     pub rt: Vec<String>,
     pub window: u64,
+}
+
+impl Rule {
+    pub fn valid(&self, rt: &String, groups: &Vec<String>) -> Result<bool> {
+        let mut valid = false;
+        for r in self.rt.clone() {
+            if r.ends_with(":*") {
+                let parent: Vec<&str> = r.split(":").collect();
+                let rt_parent: Vec<&str> = rt.split(":").collect();
+                if parent[0] == rt_parent[0] {
+                    for g in groups {
+                        if self.append.contains(g) {
+                            valid = true;
+                        }
+                    }
+                }
+            }
+        }
+        Ok(valid)
+    }
 }

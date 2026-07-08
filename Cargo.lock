@@ -544,10 +544,12 @@ dependencies = [
 name = "key"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "base32",
  "base64",
  "blake3",
  "ed25519-dalek",
+ "hex",
  "rand",
  "serde",
  "serde_bytes",
@@ -558,11 +560,13 @@ dependencies = [
 name = "keytool"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "base64",
  "clap",
  "key",
  "rand",
  "rhex",
+ "serde_cbor",
 ]
 
 [[package]]
@@ -1080,14 +1084,17 @@ dependencies = [
  "anyhow",
  "base64",
  "clap",
+ "ed25519-dalek",
  "futures",
  "key",
  "lattice",
  "serde",
  "serde_cbor",
+ "serde_json",
  "time",
  "tokio",
  "tokio-util",
+ "transform",
 ]
 
 [[package]]
