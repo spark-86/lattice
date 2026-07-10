@@ -8,13 +8,13 @@ pub use usher;
 pub mod bootstrap;
 pub mod startup;
 
-pub struct Lattice {
-    pub scopes: HashMap<String, scope::Scope>,
+pub struct Lattice<'a> {
+    pub scopes: HashMap<&'a str, scope::Scope<'a>>,
     pub ushers: usher::UsherMap,
     pub gt: u64,
 }
 
-impl Lattice {
+impl<'a> Lattice<'a> {
     /// # Genesis Master Key
     /// This is the only assumption, other than the bootstrapped
     /// addresses of the root scope ushers.
@@ -31,8 +31,8 @@ impl Lattice {
         }
     }
 
-    pub fn add_scope(&mut self, scope: scope::Scope) {
-        self.scopes.insert(scope.name.clone(), scope);
+    pub fn add_scope(&mut self, scope: &scope::Scope<'a>) {
+        self.scopes.insert(scope.name, scope.clone());
     }
 
     pub fn add_usher(&mut self, usher: usher::Usher) {

@@ -3,15 +3,19 @@ use rhex::Rhex;
 
 use crate::Scope;
 
-impl Scope {
+impl<'a> Scope<'a> {
     /// # filter_rt
     /// Filters a scope by a set of record types
     ///
-    pub fn filter_rt(&self, rhex_set: Vec<Rhex>, record_types: Vec<String>) -> Result<Vec<Rhex>> {
+    pub fn filter_rt(
+        &self,
+        rhex_set: Vec<Rhex<'a>>,
+        record_types: Vec<String>,
+    ) -> Result<Vec<Rhex<'a>>> {
         let mut filtered = Vec::new();
         for rhex in rhex_set.iter() {
             // If we have an exact match
-            if record_types.contains(&rhex.intent.rt) {
+            if record_types.contains(&rhex.intent.rt.to_string()) {
                 filtered.push(rhex.clone());
                 continue;
             }
@@ -27,7 +31,12 @@ impl Scope {
     /// # filter_time
     /// Filters by time
     ///
-    pub fn filter_time(&self, rhex_set: Vec<Rhex>, start: u64, end: u64) -> Result<Vec<Rhex>> {
+    pub fn filter_time(
+        &self,
+        rhex_set: Vec<Rhex<'a>>,
+        start: u64,
+        end: u64,
+    ) -> Result<Vec<Rhex<'a>>> {
         let mut filtered = Vec::new();
         for rhex in rhex_set.iter() {
             if rhex.context.at >= start && rhex.context.at <= end {

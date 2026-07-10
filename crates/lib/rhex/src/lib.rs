@@ -1,5 +1,4 @@
-use serde::{Deserialize, Serialize};
-
+use minicbor::{Decode, Encode};
 /*
     Structure: Rhex
 
@@ -21,6 +20,7 @@ use serde::{Deserialize, Serialize};
 */
 use crate::{
     context::RhexContext,
+    data::RhexData,
     intent::RhexIntent,
     signature::{RhexSignature, RhexSignatureType},
 };
@@ -34,20 +34,31 @@ pub mod print;
 pub mod signature;
 pub mod validate;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Rhex {
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct Rhex<'a> {
+    #[n(0)]
     pub magic: [u8; 6],
-    pub intent: RhexIntent,
-    pub context: RhexContext,
+    #[n(1)]
+    #[cbor(borrow)]
+    pub intent: RhexIntent<'a>,
+    #[n(2)]
+    #[cbor(borrow)]
+    pub data: RhexData<'a>,
+    #[n(3)]
+    #[cbor(borrow)]
+    pub context: RhexContext<'a>,
+    #[n(4)]
     pub sigs: Vec<RhexSignature>,
+    #[n(5)]
     pub curr: Option<[u8; 32]>,
 }
 
-impl Rhex {
+impl<'a> Rhex<'a> {
     pub fn new() -> Self {
         Self {
             magic: *b"RHEX\x00\x02",
             intent: RhexIntent::new(),
+            data: RhexData::None,
             context: RhexContext { at: 0, s: None },
             sigs: Vec::new(),
             curr: None,
@@ -91,11 +102,12 @@ impl Rhex {
     }
 
     pub fn to_vec(&self) -> Vec<u8> {
-        serde_cbor::to_vec(&self).unwrap()
+        minicbor::to_vec(&self).unwrap()
     }
 
-    pub fn from_vec(data: Vec<u8>) -> Self {
-        serde_cbor::from_slice(&data).unwrap()
+    pub fn from_vec(data: &'a [u8]) -> Self {
+        let restored_rhex: Rhex<'a> = minicbor::decode(data).unwrap();
+        restored_rhex
     }
 
     /// Calculates the current hash of the record
@@ -105,13 +117,16 @@ impl Rhex {
         hasher.update(b"RHEX_CURR_HASH_0");
         hasher.update(&self.intent.get_hash());
         hasher.update(&self.context.get_hash());
-        hasher.update(&serde_cbor::to_vec(&self.sigs).unwrap());
+        hasher.update(&minicbor::to_vec(&self.sigs).unwrap());
         hasher.finalize().into()
     }
 
-    pub fn disk_get(path: &str) -> Self {
-        let data = std::fs::read(path).unwrap();
-        Self::from_vec(data)
+    pub fn disk_get(_path: &str) -> Self {
+        // Because of lifetimes I have to move this somewhere else
+        // I guess? I dunno. Seems dumb.
+        /*let data = std::fs::read(path).unwrap();
+        Self::from_vec(&data)*/
+        unimplemented!()
     }
 
     pub fn disk_put(&self, path: &str) {

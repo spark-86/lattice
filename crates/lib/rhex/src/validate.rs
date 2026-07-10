@@ -2,7 +2,7 @@ use ed25519_dalek::{Verifier, VerifyingKey};
 
 use crate::{Rhex, signature::RhexSignatureType};
 
-impl Rhex {
+impl<'a> Rhex<'a> {
     /// # validate_sig
     /// Checks a single signature against it's expected hash
     ///
@@ -26,6 +26,6 @@ impl Rhex {
     }
 
     pub fn data_size(&self) -> usize {
-        serde_cbor::to_vec(&self.intent.data).unwrap().len()
+        minicbor::to_vec(&self.data).unwrap().len()
     }
 }

@@ -1,3 +1,4 @@
+use minicbor::{Decode, Encode};
 /*
     Structure: RhexIntent
 
@@ -16,38 +17,43 @@
     data: Enum of the possible payload types. See data.rs for more
         details.
 */
-use serde::{Deserialize, Serialize};
 
-use crate::data::RhexData;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RhexIntent {
+#[derive(Debug, Clone, Copy, Encode, Decode)]
+pub struct RhexIntent<'a> {
+    #[n(0)]
     pub prev: Option<[u8; 32]>,
-    pub scope: String,
+    #[n(1)]
+    pub scope: &'a str,
+    #[n(2)]
     pub nonce: [u8; 32],
+    #[n(3)]
     pub author: [u8; 32],
+    #[n(4)]
     pub usher: [u8; 32],
-    pub schema: Option<String>,
-    pub rt: String,
-    pub data: RhexData,
+    #[n(5)]
+    pub schema: Option<&'a str>,
+    #[n(6)]
+    pub rt: &'a str,
+    #[n(7)]
+    pub data_hash: Option<[u8; 32]>,
 }
 
-impl RhexIntent {
+impl<'a> RhexIntent<'a> {
     pub fn new() -> Self {
         Self {
             prev: None,
-            scope: String::new(),
+            scope: "",
             nonce: [0; 32],
             author: [0; 32],
             usher: [0; 32],
             schema: None,
-            rt: String::new(),
-            data: RhexData::None,
+            rt: "",
+            data_hash: None,
         }
     }
 
     pub fn get_hash(&self) -> [u8; 32] {
-        blake3::hash(&serde_cbor::to_vec(&self).unwrap()).into()
+        blake3::hash(&minicbor::to_vec(&self).unwrap()).into()
     }
 
     pub fn gen_nonce(&mut self) {
@@ -56,12 +62,12 @@ impl RhexIntent {
 
     pub fn build(
         prev: Option<[u8; 32]>,
-        scope: String,
+        scope: &'a str,
         author: [u8; 32],
         usher: [u8; 32],
-        schema: Option<String>,
-        rt: String,
-        data: RhexData,
+        schema: Option<&'a str>,
+        rt: &'a str,
+        data_hash: Option<[u8; 32]>,
     ) -> Self {
         let mut intent = Self::new();
         intent.prev = prev;
@@ -71,7 +77,7 @@ impl RhexIntent {
         intent.gen_nonce();
         intent.schema = schema;
         intent.rt = rt;
-        intent.data = data;
+        intent.data_hash = data_hash;
         intent
     }
 }

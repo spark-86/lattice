@@ -1,11 +1,8 @@
-use std::collections::HashMap;
-
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
 
 use crate::Scope;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Membership {
     pub issued: u64,
     pub eff: u64,
@@ -16,29 +13,25 @@ pub struct Membership {
 #[derive(Debug, Clone, PartialEq)]
 pub enum MemberAccess {
     Valid,
-    NoGroup(String),
     MembershipExpired(Membership),
     FutureMembership(Membership),
-    NoEntry([u8; 32]),
+    NoEntry([u8; 32], String),
 }
 
-impl Scope {
+impl<'a> Scope<'a> {
     /// # membership_status
     /// I used to think this was a good idea, but now I feel like
     /// this is just a lot of work to keep the most current
     /// access rights.
     ///
-    pub fn membership_status(&self, key: [u8; 32], group: String, time: u64) -> MemberAccess {
-        let group_map = self.memberships.get(&group);
+    pub fn membership_status(&self, key: [u8; 32], group: &str, time: u64) -> MemberAccess {
+        let group_map = self.memberships.get(&(key, group));
         if group_map.is_none() {
-            return MemberAccess::NoGroup(group);
+            return MemberAccess::NoEntry(key, group.to_string());
         };
-        let group_map = group_map.unwrap();
-        let key_map: Option<&Vec<Membership>> = group_map.get(&key);
-        if key_map.is_none() {
-            return MemberAccess::NoEntry(key.clone());
-        };
-        let latest = &key_map.unwrap().clone()[key_map.unwrap().len()];
+        let mut group_map = group_map.unwrap().clone();
+        group_map.retain(|g| g.issued < time);
+        let latest = &group_map.clone()[group_map.len()];
         if latest.eff < time {
             if latest.exp > time {
                 return MemberAccess::Valid;
@@ -52,25 +45,17 @@ impl Scope {
 
     /// # add_membership
     /// This updates the membership status for a set of keys in a
-    /// group. TODO: Upgrade this to take an array of groups too
+    /// group.
     ///
     pub fn add_membership(
         &mut self,
-        group: String,
+        group: &'a str,
         keys: Vec<[u8; 32]>,
         membership: Membership,
-        author: [u8; 32],
     ) -> Result<()> {
-        let group = self.memberships.entry(group).or_insert(HashMap::new());
-
         for key in keys {
-            let entry = group.entry(key.clone()).or_insert(Vec::new());
-            entry.push(Membership {
-                issued: membership.issued,
-                eff: membership.eff,
-                exp: membership.exp,
-                by: author,
-            })
+            self.memberships
+                .insert((key, group), vec![membership.clone()]);
         }
         Ok(())
     }
@@ -83,17 +68,14 @@ impl Scope {
     ///
     pub fn member_of_at(&self, key: [u8; 32], time: u64) -> Result<Vec<String>> {
         let mut output = Vec::new();
-        for (group, map) in &self.memberships {
-            let entry = map.get(&key);
-            // Do we have an entry in this group for this key?
-            if entry.is_some() {
-                let entry = entry.unwrap();
-                // This grabs the latest membership issued before `time`
-                let latest = entry.iter().filter(|e| e.issued < time).last();
-                if latest.is_some() {
-                    let latest = latest.unwrap();
+        for ((map_key, group), memberships) in &self.memberships {
+            if &key == map_key {
+                let mut memberships = memberships.clone();
+                memberships.retain(|m| m.issued < time);
+                if memberships.len() > 0 {
+                    let latest = memberships.last().unwrap();
                     if latest.eff < time && latest.exp > time {
-                        output.push(group.clone());
+                        output.push(group.to_string());
                     }
                 }
             }

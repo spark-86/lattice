@@ -1,15 +1,20 @@
-use anyhow::{Ok, Result};
-use serde::{Deserialize, Serialize};
+use minicbor::{Decode, Encode};
 
 use crate::rule::Rule;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct Policy {
+    #[n(0)]
     pub desc: String,
+    #[n(1)]
     pub rules: Vec<Rule>,
+    #[n(2)]
     pub eff: u64,
+    #[n(3)]
     pub exp: u64,
+    #[n(4)]
     pub tags: Vec<String>,
+    #[n(5)]
     pub issued: u64,
 }
 
@@ -154,7 +159,7 @@ impl Policy {
         !self.is_dangerous()
     }
 
-    pub fn get_k(&self, rt: &String, groups: &Vec<String>) -> Result<u16> {
+    pub fn get_k(&self, rt: &String, groups: &Vec<String>) -> anyhow::Result<u16> {
         for rule in &self.rules {
             if rule.valid(rt, groups)? {
                 return Ok(rule.k);
@@ -163,7 +168,7 @@ impl Policy {
         Err(anyhow::anyhow!("Not a valid rule axis"))
     }
 
-    pub fn get_window(&self, rt: &String, groups: &Vec<String>) -> Result<u64> {
+    pub fn get_window(&self, rt: &String, groups: &Vec<String>) -> anyhow::Result<u64> {
         for rule in &self.rules {
             if rule.valid(rt, groups)? {
                 return Ok(rule.window);

@@ -23,7 +23,11 @@ pub fn receive(
     rhex: Rhex,
     trans_registry: TransformRegistry,
     lattice: Lattice,
+    me: &IAm,
 ) -> Result<(ReceiveStatus, Vec<Rhex>)> {
+    let mut enclave = Enclave::new(Some(config.enclave.clone()));
+    enclave.populate()?;
+
     // Process the Rhex to see where we are
     match rhex.sigs.len() {
         0 => {
@@ -34,8 +38,6 @@ pub fn receive(
         }
         1 => {
             // We're here to get an usher sig
-            let mut enclave = Enclave::new(Some(config.enclave.clone()));
-            let _ = enclave.populate();
             let scope = lattice.scopes.get(&rhex.intent.scope).unwrap();
             let (status, signed, intents) = recv_usher_sig(scope, &rhex, trans_registry, &enclave)?;
 
@@ -79,7 +81,12 @@ pub fn receive(
             let policy = scope.get_policy_at(rhex.context.at.clone());
             let groups = scope.member_of_at(rhex.intent.author, rhex.context.at)?;
             let k = policy.get_k(&rhex.intent.rt, &groups)?;
-            if k > 0 {}
+            if k > 0 {
+                let result = recv_quorum_sig(scope, &rhex, &enclave, me)?;
+                if result.0 == CheckStatus::Success {
+                    // Return the sig via Rhex payload here.
+                }
+            }
         }
         3.. => {
             // We have quorum assembled and are submitting for final

@@ -1,21 +1,27 @@
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
-use serde::{Deserialize, Serialize};
-use serde_big_array::BigArray;
+use minicbor::{Decode, Encode};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Encode, Decode)]
 pub struct RhexSignature {
+    #[n(0)]
     pub pk: [u8; 32],
-    #[serde(with = "BigArray")]
+    #[n(1)]
     pub sig: [u8; 64],
+    #[n(2)]
     pub t: RhexSignatureType,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Encode, Decode)]
 pub enum RhexSignatureType {
+    #[n(0)]
     Author,
+    #[n(1)]
     Usher,
+    #[n(2)]
     Quorum,
+    #[n(3)]
     Observer,
+    #[n(4)]
     Other,
 }
 

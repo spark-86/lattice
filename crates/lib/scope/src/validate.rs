@@ -2,7 +2,7 @@ use rhex::Rhex;
 
 use crate::Scope;
 
-impl Scope {
+impl<'a> Scope<'a> {
     /// # check_nonce_reused
     /// Quickly skims the chain to see if this nonce has been used
     /// before. Returns `true` if it already exists in the scope

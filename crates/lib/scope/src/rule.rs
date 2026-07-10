@@ -1,13 +1,19 @@
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
+use minicbor::{Decode, Encode};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct Rule {
+    #[n(0)]
     pub append: Vec<String>,
+    #[n(1)]
     pub k: u16,
+    #[n(2)]
     pub quorum: Vec<String>,
+    #[n(3)]
     pub delay: u64,
+    #[n(4)]
     pub rt: Vec<String>,
+    #[n(5)]
     pub window: u64,
 }
 

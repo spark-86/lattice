@@ -14,3 +14,4 @@ rand = { workspace = true }
 rhex = { path = "../rhex" }
 hex = { workspace = true }
 anyhow = { workspace = true }
+minicbor = { workspace = true }

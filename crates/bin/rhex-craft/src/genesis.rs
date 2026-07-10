@@ -16,20 +16,22 @@ pub fn genesis(key: String, enclave_path: String, output: String) -> Result<()> 
     let key_conv: [u8; 32] = URL_SAFE_NO_PAD.decode(key)?.try_into().unwrap();
     let mut enclave = Enclave::new(Some(enclave_path));
     let _ = enclave.populate();
-
+    let binary_vec = vec![key_conv.clone()];
+    let json = json!({
+        "at": time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_secs(),
+    })
+    .to_string();
     // Build intent
     rhex.intent.gen_nonce();
     rhex.intent.prev = None;
-    rhex.intent.scope = "".to_string();
+    rhex.intent.scope = "";
     rhex.intent.author = key_conv.clone();
     rhex.intent.usher = key_conv.clone();
-    rhex.intent.rt = "lattice:genesis".to_string();
+    rhex.intent.rt = "lattice:genesis";
     rhex.intent.schema = None;
     rhex.intent.data = RhexData::Mixed {
-        meta: json!({
-            "at": time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_secs(),
-        }),
-        binary: vec![key_conv.clone().to_vec()],
+        meta: json.as_bytes(),
+        binary: &binary_vec.as_flattened(),
     };
 
     // Add context since we are the usher too

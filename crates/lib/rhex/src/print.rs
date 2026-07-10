@@ -2,7 +2,7 @@ use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 
 use crate::Rhex;
 
-impl Rhex {
+impl<'a> Rhex<'a> {
     pub fn pretty_print(&self) -> String {
         let magic = match self.magic.as_slice() {
             b"RHEX\x00\x01" => "V1",
@@ -13,22 +13,18 @@ impl Rhex {
             Some(prev) => URL_SAFE_NO_PAD.encode(prev),
             None => "None".to_string(),
         };
-        let scope = match self.intent.scope.as_str() {
-            "" => "(root)".to_string(),
-            _ => self.intent.scope.clone(),
+        let scope = match self.intent.scope {
+            "" => "(root)",
+            _ => self.intent.scope,
         };
         let author = URL_SAFE_NO_PAD.encode(self.intent.author);
         let usher = URL_SAFE_NO_PAD.encode(self.intent.usher);
         let schema = match &self.intent.schema {
             Some(schema) => schema,
-            None => &"None".to_string(),
+            None => &"None",
         };
         let spacial = match &self.context.s {
-            Some(s) => format!(
-                "\"{}\": {}",
-                s.s_ref,
-                URL_SAFE_NO_PAD.encode(s.s_data.clone())
-            ),
+            Some(s) => format!("\"{}\": {}", s.s_ref, URL_SAFE_NO_PAD.encode(s.s_data)),
             None => "None".to_string(),
         };
         let mut sigs = Vec::new();
@@ -38,6 +34,10 @@ impl Rhex {
         let sigs = format!("\n\t\t{}", sigs.join("\n\t\t"));
         let curr = match self.curr {
             Some(curr) => URL_SAFE_NO_PAD.encode(curr),
+            None => "None".to_string(),
+        };
+        let data_hash = match self.intent.data_hash {
+            Some(hash) => URL_SAFE_NO_PAD.encode(hash),
             None => "None".to_string(),
         };
 
@@ -51,8 +51,9 @@ impl Rhex {
     \t\tusher: {},
     \t\trt: {},
     \t\tschema: {},
-    \t\tdata: {},
+    \t\tdata_hash: {},
     \t}},
+    \tdata: {},
     \tcontext: {{
     \t\tat: {},
     \t\ts: {},
@@ -67,7 +68,8 @@ impl Rhex {
             usher,
             self.intent.rt,
             schema,
-            self.intent.data.print(),
+            data_hash,
+            self.data.print(),
             self.context.at,
             spacial,
             sigs,

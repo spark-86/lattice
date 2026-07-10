@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fs};
 
 use anyhow::Result;
 use lattice::scope::Scope;
@@ -30,4 +30,16 @@ pub fn is_usher(me: &IAm, scope: &Scope, time: u64) -> Result<Option<[u8; 32]>> 
         }
     }
     Ok(None)
+}
+
+pub fn disk_from(path: &String) -> Result<IAm> {
+    let cbor = fs::read(path)?;
+    let iam: IAm = serde_cbor::from_slice(&cbor)?;
+    Ok(iam)
+}
+
+pub fn disk_to(me: &IAm, path: &String) -> Result<()> {
+    let contents = serde_cbor::to_vec(me)?;
+    fs::write(path, contents)?;
+    Ok(())
 }
