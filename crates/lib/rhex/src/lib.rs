@@ -54,9 +54,10 @@ pub struct Rhex<'a> {
 }
 
 impl<'a> Rhex<'a> {
+    pub const MAGIC: [u8; 6] = *b"RHEX\x00\x03";
     pub fn new() -> Self {
         Self {
-            magic: *b"RHEX\x00\x02",
+            magic: Rhex::MAGIC,
             intent: RhexIntent::new(),
             data: RhexData::None,
             context: RhexContext { at: 0, s: None },

@@ -6,7 +6,6 @@ use base64::{Engine as _, engine};
 use clap::Parser;
 use std::{error::Error, path::PathBuf, str::FromStr};
 
-pub mod append;
 pub mod check;
 pub mod cli;
 pub mod client;

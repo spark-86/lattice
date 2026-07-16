@@ -4,16 +4,13 @@ use cli::Commands;
 
 mod build;
 mod cli;
+mod finalize;
 mod genesis;
 mod view;
 
 fn main() {
     println!("Lattice R⬢ Crafting Tool {}", env!("CARGO_PKG_VERSION"));
     let cli = cli::Cli::parse();
-    let enclave_path = match cli.enclave_path {
-        Some(ep) => ep,
-        None => "./keys".to_string(),
-    };
     match cli.command {
         Commands::Build {
             prev,
@@ -25,9 +22,20 @@ fn main() {
             data,
             output,
         } => {
-            build::build(prev, scope, author, usher, schema, rt, data, output);
+            let _ = build::build(prev, scope, author, usher, schema, rt, data, output);
         }
-        Commands::Genesis { key, output } => {
+        Commands::Finalize {
+            input,
+            output,
+            use_curr,
+        } => {
+            let _ = finalize::finalize(input, output, use_curr);
+        }
+        Commands::Genesis {
+            key,
+            output,
+            enclave_path,
+        } => {
             let _ = genesis::genesis(key, enclave_path, output);
         }
         Commands::View { input } => {

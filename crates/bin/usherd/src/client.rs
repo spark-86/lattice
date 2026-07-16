@@ -17,7 +17,7 @@ pub async fn run(usher: String, rhex_file: PathBuf, usher_map: PathBuf) -> Resul
     let usher_map = std::fs::read(usher_map)?;
     let usher_map: usher::UsherMap = serde_cbor::from_slice(&usher_map)?;
     let rhex = std::fs::read(rhex_file)?;
-    let rhex: Vec<Rhex> = serde_cbor::from_slice(&rhex)?;
+    let rhex: Vec<Rhex> = minicbor::decode(&rhex)?;
 
     // Lookup
     let usher = usher_map.get(&usher_key);
@@ -43,12 +43,14 @@ pub async fn run(usher: String, rhex_file: PathBuf, usher_map: PathBuf) -> Resul
             );
 
             for rhex in rhex {
-                framed.send(serde_cbor::to_vec(&rhex)?.into()).await?;
+                let mut buf = Vec::new();
+                minicbor::encode(&rhex, &mut buf)?;
+                framed.send(buf.clone().into()).await?;
             }
 
             while let Some(response_result) = framed.next().await {
                 let response = response_result?;
-                let response: Vec<Rhex> = serde_cbor::from_slice(&response)?;
+                let response: Vec<Rhex> = minicbor::decode(&response)?;
                 println!("Received {} items", response.len());
             }
         }

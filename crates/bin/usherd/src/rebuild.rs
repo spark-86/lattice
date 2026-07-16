@@ -23,7 +23,7 @@ pub fn rebuild(config: &UsherdConfig) -> Result<Lattice> {
     let ushers = usher::map::disk_get(&usher_map_path);
     usher::map::disk_put(&usher_map_path, ushers);
     let root_scope = fs::read(&root_scope_bootstrap)?;
-    let root_rhex: Vec<Rhex> = serde_cbor::from_slice(&root_scope)?;
+    let root_rhex: Vec<Rhex> = minicbor::decode(&root_scope)?;
 
     // Save the bootstrapped root scope to {config.scopes}/
     for rhex in &root_rhex {
@@ -31,12 +31,11 @@ pub fn rebuild(config: &UsherdConfig) -> Result<Lattice> {
     }
 
     // Make the root scope an object
-    let mut root_scope = lattice::scope::Scope::new("".to_string(), lattice::Lattice::GENESIS_KEY);
+    let mut root_scope = lattice::scope::Scope::new(&"".to_string(), lattice::Lattice::GENESIS_KEY);
     // ...and populate it
-    root_scope.rhex = root_rhex;
-    root_scope.head = Some(root_scope.rhex[root_scope.rhex.len() - 1].calc_curr());
+    root_scope.head = Some(root_rhex[root_rhex.len() - 1].calc_curr());
 
     let mut lattice = lattice::Lattice::new();
-    lattice.add_scope(root_scope);
+    lattice.add_scope(&root_scope.clone());
     Ok(lattice)
 }

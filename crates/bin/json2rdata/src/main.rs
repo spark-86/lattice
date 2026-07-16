@@ -5,5 +5,5 @@ pub mod convert;
 
 fn main() {
     let cli = cli::Cli::parse();
-    convert::run(cli.input, cli.output);
+    let _ = convert::run(cli.input, cli.output);
 }

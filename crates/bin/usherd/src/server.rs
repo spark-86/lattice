@@ -42,15 +42,15 @@ async fn handle_connection(stream: tokio::net::TcpStream) -> Result<()> {
     while let Some(request_result) = framed.next().await {
         let bytes = request_result?;
 
-        // 2. Decode using serde_cbor
-        let rhex_list: Vec<Rhex> = serde_cbor::from_slice(&bytes)?;
+        // 2. Decode using minicbor
+        let rhex_list: Vec<Rhex> = minicbor::decode(&bytes)?;
         println!("Received {} items", rhex_list.len());
 
         for _rhex in &rhex_list {
             // Append rhex here
         }
-
-        let response = serde_cbor::to_vec(&rhex_list)?;
+        let mut response = Vec::new();
+        minicbor::encode(&rhex_list, &mut response)?;
 
         // 4. Send back through the frame
         framed.send(response.into()).await?;

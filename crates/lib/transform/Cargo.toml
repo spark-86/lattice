@@ -12,3 +12,4 @@ libloading = { workspace = true }
 anyhow = { workspace = true }
 blake3 = { workspace = true }
 hex = { workspace = true }
+minicbor = { workspace = true }

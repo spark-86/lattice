@@ -18,13 +18,14 @@ use crate::{
     iam::{self, IAm},
 };
 
-pub fn receive(
+pub fn receive<'a>(
     config: &UsherdConfig,
-    rhex: Rhex,
+    rhex: Rhex<'a>,
     trans_registry: TransformRegistry,
     lattice: Lattice,
     me: &IAm,
-) -> Result<(ReceiveStatus, Vec<Rhex>)> {
+    storage: &'a mut Vec<Vec<u8>>,
+) -> Result<(ReceiveStatus, Vec<Rhex<'a>>)> {
     let mut enclave = Enclave::new(Some(config.enclave.clone()));
     enclave.populate()?;
 
@@ -38,8 +39,9 @@ pub fn receive(
         }
         1 => {
             // We're here to get an usher sig
-            let scope = lattice.scopes.get(&rhex.intent.scope).unwrap();
-            let (status, signed, intents) = recv_usher_sig(scope, &rhex, trans_registry, &enclave)?;
+            let scope = lattice.scopes.get(&rhex.intent.scope.to_string()).unwrap();
+            let (status, signed, intents) =
+                recv_usher_sig(scope, &rhex, trans_registry, &enclave, storage)?;
 
             // We are here to sign over all the outbound Rhex that we generated.
             // TODO: Obviously we should probably not just blindly sign shit
@@ -77,10 +79,10 @@ pub fn receive(
         2 => {
             // We're looking to either submit w/ no quorum or looking
             // to collect quorum from us
-            let scope = lattice.scopes.get(&rhex.intent.scope).unwrap();
+            let scope = lattice.scopes.get(&rhex.intent.scope.to_string()).unwrap();
             let policy = scope.get_policy_at(rhex.context.at.clone());
             let groups = scope.member_of_at(rhex.intent.author, rhex.context.at)?;
-            let k = policy.get_k(&rhex.intent.rt, &groups)?;
+            let k = policy.get_k(&rhex.intent.rt.to_string(), &groups)?;
             if k > 0 {
                 let result = recv_quorum_sig(scope, &rhex, &enclave, me)?;
                 if result.0 == CheckStatus::Success {
@@ -96,12 +98,13 @@ pub fn receive(
     Ok((ReceiveStatus::Success, vec![]))
 }
 
-pub fn recv_usher_sig(
+pub fn recv_usher_sig<'a>(
     scope: &Scope,
-    rhex: &Rhex,
+    rhex: &Rhex<'a>,
     trans_registry: TransformRegistry,
     enclave: &Enclave,
-) -> Result<(CheckStatus, Option<Rhex>, Vec<RhexIntent>)> {
+    storage: &'a mut Vec<Vec<u8>>,
+) -> Result<(CheckStatus, Option<Rhex<'a>>, Vec<RhexIntent<'a>>)> {
     let mut outputs = Vec::new();
     // check all the pertanent things
     outputs.push(check::check_data_size(rhex)?);
@@ -113,8 +116,9 @@ pub fn recv_usher_sig(
     outputs.push(check::check_usher(scope, rhex)?);
     outputs.push(check::check_sig(rhex, 0)?);
     // check for transforms for validation
+    //let mut storage = Vec::new();
     let (status, intents) =
-        firing::fire_transforms(rhex, trans_registry, DescriptorAction::Validate)?;
+        firing::fire_transforms(rhex, trans_registry, DescriptorAction::Validate, storage)?;
     outputs.push(status);
     outputs.retain(|s| *s != CheckStatus::Success);
     if outputs.len() > 0 {
@@ -159,7 +163,7 @@ pub fn recv_quorum_sig(
             return Ok((CheckStatus::NotUsherForThisScope, None));
         };
         let window = policy.get_window(
-            &rhex.intent.rt,
+            &rhex.intent.rt.to_string(),
             &scope.member_of_at(rhex.intent.author, rhex.context.at)?,
         )?;
         let time = std::time::SystemTime::now()

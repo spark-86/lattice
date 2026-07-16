@@ -10,7 +10,11 @@ use scope::rhex::{
 };
 use serde_json::json;
 
-pub fn genesis(key: String, enclave_path: String, output: String) -> Result<()> {
+pub fn genesis(key: String, enclave_path: Option<String>, output: String) -> Result<()> {
+    let enclave_path = match enclave_path {
+        Some(ep) => ep,
+        None => "./keys".to_string(),
+    };
     let mut rhex = rhex::Rhex::new();
     //let key = key::Key::disk_get(&key);
     let key_conv: [u8; 32] = URL_SAFE_NO_PAD.decode(key)?.try_into().unwrap();
@@ -21,6 +25,17 @@ pub fn genesis(key: String, enclave_path: String, output: String) -> Result<()> 
         "at": time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_secs(),
     })
     .to_string();
+
+    // Build data
+    let mut buffer = Vec::new();
+    let data = RhexData::Mixed {
+        meta: json.as_bytes(),
+        binary: &binary_vec.as_flattened(),
+    };
+    minicbor::encode(&data, &mut buffer).expect("Failed to encode CBOR");
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(&buffer);
+    let hash = hasher.finalize();
     // Build intent
     rhex.intent.gen_nonce();
     rhex.intent.prev = None;
@@ -29,10 +44,7 @@ pub fn genesis(key: String, enclave_path: String, output: String) -> Result<()> 
     rhex.intent.usher = key_conv.clone();
     rhex.intent.rt = "lattice:genesis";
     rhex.intent.schema = None;
-    rhex.intent.data = RhexData::Mixed {
-        meta: json.as_bytes(),
-        binary: &binary_vec.as_flattened(),
-    };
+    rhex.intent.data_hash = Some(*hash.as_bytes());
 
     // Add context since we are the usher too
     rhex.context.at = 0;

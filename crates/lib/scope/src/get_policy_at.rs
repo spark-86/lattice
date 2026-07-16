@@ -1,6 +1,6 @@
 use crate::{Scope, policy::Policy};
 
-impl<'a> Scope<'a> {
+impl Scope {
     /// # get_policy_at
     /// This returns the current policy at the specified micromark.
     /// This is necessary because a scope accumilates future policies

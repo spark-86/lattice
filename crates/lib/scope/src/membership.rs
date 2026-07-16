@@ -18,14 +18,14 @@ pub enum MemberAccess {
     NoEntry([u8; 32], String),
 }
 
-impl<'a> Scope<'a> {
+impl Scope {
     /// # membership_status
     /// I used to think this was a good idea, but now I feel like
     /// this is just a lot of work to keep the most current
     /// access rights.
     ///
-    pub fn membership_status(&self, key: [u8; 32], group: &str, time: u64) -> MemberAccess {
-        let group_map = self.memberships.get(&(key, group));
+    pub fn membership_status(&self, key: [u8; 32], group: &String, time: u64) -> MemberAccess {
+        let group_map = self.memberships.get(&(key, group.clone()));
         if group_map.is_none() {
             return MemberAccess::NoEntry(key, group.to_string());
         };
@@ -49,13 +49,13 @@ impl<'a> Scope<'a> {
     ///
     pub fn add_membership(
         &mut self,
-        group: &'a str,
+        group: String,
         keys: Vec<[u8; 32]>,
         membership: Membership,
     ) -> Result<()> {
         for key in keys {
             self.memberships
-                .insert((key, group), vec![membership.clone()]);
+                .insert((key, group.clone()), vec![membership.clone()]);
         }
         Ok(())
     }

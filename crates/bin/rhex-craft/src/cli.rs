@@ -3,9 +3,6 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    #[arg(short, long)]
-    pub enclave_path: Option<String>,
-
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -26,12 +23,24 @@ pub enum Commands {
         #[arg(long)]
         rt: String,
         #[arg(long)]
-        data: String,
+        data: Option<String>,
         output: String,
     },
-    Genesis {
-        key: String,
+    Finalize {
+        #[arg(short, long)]
+        input: String,
+        #[arg(short, long)]
         output: String,
+        #[arg(short, long)]
+        use_curr: bool,
+    },
+    Genesis {
+        #[arg(short, long)]
+        key: String,
+        #[arg(short, long)]
+        output: String,
+        #[arg(short, long)]
+        enclave_path: Option<String>,
     },
     View {
         input: String,

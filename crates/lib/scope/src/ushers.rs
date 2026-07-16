@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::Scope;
 
-impl<'a> Scope<'a> {
+impl Scope {
     pub fn ushers_at(&self, time: u64) -> Result<Vec<([u8; 32], UsherAssignment)>> {
         let mut output = Vec::new();
         for (key, assignment) in &self.ushers {

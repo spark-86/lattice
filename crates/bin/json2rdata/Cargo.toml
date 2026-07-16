@@ -11,3 +11,4 @@ clap = { workspace = true }
 anyhow = { workspace = true }
 base64 = { workspace = true }
 lattice = { path = "../../lib/lattice" }
+minicbor = { workspace = true }

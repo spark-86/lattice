@@ -6,7 +6,7 @@ impl Policy {
     /// by the specified group. This will also match wildcards
     /// like request:*.
     ///
-    pub fn can_submit(&self, rt: &String, groups: &Vec<String>) -> bool {
+    pub fn can_submit(&self, rt: &str, groups: &Vec<String>) -> bool {
         for rule in &self.rules {
             if rule.rt.ends_with(&[":*".to_string()]) {
                 let rt_super = rt[..rt.len() - 1].to_string();

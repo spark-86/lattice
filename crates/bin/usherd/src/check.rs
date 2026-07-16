@@ -23,8 +23,8 @@ pub fn check_same_scope(scope: &Scope, rhex: &Rhex) -> Result<CheckStatus> {
     // See if this record is even for this scope
     if scope.name != rhex.intent.scope {
         return Ok(CheckStatus::NotThisScope {
-            presented: rhex.intent.scope.clone(),
-            expected: scope.name.clone(),
+            presented: rhex.intent.scope.to_string(),
+            expected: scope.name.to_string(),
         });
     };
     Ok(CheckStatus::Success)
@@ -66,7 +66,7 @@ pub fn check_rt_access(scope: &Scope, rhex: &Rhex) -> Result<CheckStatus> {
         return Ok(CheckStatus::AccessDenied);
     }
     let policy = scope.get_policy_at(rhex.context.at.clone());
-    let submittable = policy.can_submit(&rhex.intent.rt, &groups);
+    let submittable = policy.can_submit(rhex.intent.rt, &groups);
     if !submittable {
         return Ok(CheckStatus::RtNotAllowed);
     }

@@ -18,3 +18,4 @@ anyhow = { workspace = true }
 time = { path = "../../lib/time" }
 transform = { path = "../../lib/transform" }
 ed25519-dalek = { workspace = true }
+minicbor = { workspace = true }

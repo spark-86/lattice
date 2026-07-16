@@ -4,7 +4,7 @@ use anyhow::Result;
 
 use crate::Scope;
 
-impl<'a> Scope<'a> {
+impl Scope {
     /// # build_from_genesis
     /// Takes a path, loads the genesis.rhex and starts walking forward
     /// as opposed to `slurp_scope` which builds from the end (which
@@ -13,12 +13,12 @@ impl<'a> Scope<'a> {
     pub fn build_from_genesis(path: String) -> Result<Self> {
         let mut done = false;
         let genesis = rhex::Rhex::disk_get(format!("{}/genesis.rhex", path).as_str());
-        let scope_name = genesis.intent.scope;
+        let scope_name = &genesis.intent.scope.to_string();
         let mut scope = Scope::new(scope_name, genesis.intent.author.clone());
 
         let mut next = genesis.curr;
         while !done {
-            let scope_dir = match scope_name {
+            let scope_dir = match scope_name.as_str() {
                 "" => format!("{}/scopes", path),
                 _ => format!("{}/scopes/{}", path, scope_name),
             };
@@ -29,7 +29,7 @@ impl<'a> Scope<'a> {
                 let valid = rhex.validate();
 
                 if valid {
-                    scope.add_rhex(rhex.clone());
+                    //scope.add_rhex(rhex.clone());
                     next = rhex.intent.prev;
                 } else {
                     anyhow::bail!(
