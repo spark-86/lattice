@@ -15,11 +15,11 @@ pub fn run(input: String, output: String) -> Result<()> {
         "none" => rhex::data::RhexData::None,
         "json" => {
             let data = json["data"].clone().to_string();
-            rhex::data::RhexData::Json(&data.into_bytes())
+            rhex::data::RhexData::Json(data.into_bytes())
         }
         "binary" => {
             let data = resolve_bytes(json["data"].as_str().unwrap()).unwrap();
-            rhex::data::RhexData::Binary(&data.clone())
+            rhex::data::RhexData::Binary(data.clone())
         }
         "mixed" => {
             let meta = json["meta"].clone().to_string();
@@ -33,8 +33,8 @@ pub fn run(input: String, output: String) -> Result<()> {
                 bin_chain = [bin_chain, b].concat();
             }
             rhex::data::RhexData::Mixed {
-                meta: &meta.into_bytes(),
-                binary: &bin_chain.clone(),
+                meta: meta.into_bytes(),
+                binary: bin_chain.clone(),
             }
         }
         _ => panic!("Unknown data type: {}", data_type),

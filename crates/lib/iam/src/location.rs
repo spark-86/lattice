@@ -1,24 +1,25 @@
 use minicbor::{Decode, Encode};
 
 #[derive(Debug, Clone, Encode, Decode)]
-pub enum UsherLocation {
+pub enum IAmLocation {
     #[n(0)]
-    Local {
-        #[n(0)]
-        port: u16,
-    },
+    None,
     #[n(1)]
+    Local,
+    #[n(2)]
     Internet {
         #[n(0)]
-        ip: String,
+        address: String,
         #[n(1)]
         port: u16,
     },
-    #[n(2)]
+    #[n(3)]
     Tor {
         #[n(0)]
         onion: String,
+        #[n(1)]
+        port: u16,
     },
-    #[n(3)]
+    #[n(4)]
     Unknown,
 }

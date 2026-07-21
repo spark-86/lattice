@@ -2,7 +2,7 @@ use ed25519_dalek::{Verifier, VerifyingKey};
 
 use crate::{Rhex, signature::RhexSignatureType};
 
-impl<'a> Rhex<'a> {
+impl Rhex {
     /// # validate_sig
     /// Checks a single signature against it's expected hash
     ///

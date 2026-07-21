@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 serde = { workspace = true }
-serde_cbor = { workspace = true } 
 key = { path = "../../lib/key" }
+minicbor = { workspace = true }

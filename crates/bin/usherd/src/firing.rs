@@ -11,12 +11,12 @@ use crate::check::CheckStatus;
 /// This has to be the worst possible way to do this. This is the damn
 /// CRE creeping into this. I can't help it. I just feel like the
 /// modular execution is important to the Lattice.
-pub fn fire_transforms<'a>(
+pub fn fire_transforms(
     rhex: &Rhex,
     trans_registry: TransformRegistry,
     action: DescriptorAction,
-    storage: &'a mut Vec<Vec<u8>>,
-) -> Result<(CheckStatus, Vec<RhexIntent<'a>>)> {
+) -> Result<(CheckStatus, Vec<RhexIntent>)> {
+    let mut storage = Vec::new();
     let mut output_intents = Vec::new();
     let action_set = trans_registry.triggers.get(&action);
     if action_set.is_some() {

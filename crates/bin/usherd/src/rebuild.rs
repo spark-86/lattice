@@ -20,8 +20,8 @@ pub fn rebuild(config: &UsherdConfig) -> Result<Lattice> {
     fs::create_dir_all(&scope_path)?;
 
     // Load the bootstrap data
-    let ushers = usher::map::disk_get(&usher_map_path);
-    usher::map::disk_put(&usher_map_path, ushers);
+    let ushers = usher::map::disk_from(&usher_map_path);
+    usher::map::disk_to(&usher_map_path, ushers);
     let root_scope = fs::read(&root_scope_bootstrap)?;
     let root_rhex: Vec<Rhex> = minicbor::decode(&root_scope)?;
 

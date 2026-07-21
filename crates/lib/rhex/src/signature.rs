@@ -1,3 +1,4 @@
+use anyhow::Result;
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use minicbor::{Decode, Encode};
 
@@ -18,9 +19,9 @@ pub enum RhexSignatureType {
     #[n(1)]
     Usher,
     #[n(2)]
-    Quorum,
+    Quorum(#[n(0)] u64),
     #[n(3)]
-    Observer,
+    Observer(#[n(0)] u64),
     #[n(4)]
     Other,
 }
@@ -30,12 +31,18 @@ impl RhexSignature {
         let pk = URL_SAFE_NO_PAD.encode(self.pk);
         let sig = URL_SAFE_NO_PAD.encode(self.sig);
         let t = match self.t {
-            RhexSignatureType::Author => "Author",
-            RhexSignatureType::Usher => "Usher",
-            RhexSignatureType::Quorum => "Quorum",
-            RhexSignatureType::Observer => "Observer",
+            RhexSignatureType::Author => &"Author".to_string(),
+            RhexSignatureType::Usher => &"Usher".to_string(),
+            RhexSignatureType::Quorum(t) => &format!("Quorum: Δ{}", t),
+            RhexSignatureType::Observer(t) => &format!("Observer: Δ{}", t),
             RhexSignatureType::Other => "Other",
         };
         format!("{}: [{}]\n\t\t\t{}", t, pk, sig)
+    }
+
+    pub fn to_vec(&self) -> Result<Vec<u8>> {
+        let mut buf = Vec::new();
+        minicbor::encode(self, &mut buf)?;
+        Ok(buf)
     }
 }

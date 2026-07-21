@@ -1,8 +1,8 @@
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 
-use crate::Rhex;
+use crate::{Rhex, data::RhexData};
 
-impl<'a> Rhex<'a> {
+impl Rhex {
     pub fn pretty_print(&self) -> String {
         let magic = match self.magic.as_slice() {
             b"RHEX\x00\x01" => "V1",
@@ -13,18 +13,22 @@ impl<'a> Rhex<'a> {
             Some(prev) => URL_SAFE_NO_PAD.encode(prev),
             None => "None".to_string(),
         };
-        let scope = match self.intent.scope {
-            "" => "(root)",
-            _ => self.intent.scope,
+        let scope = match self.intent.scope.as_str() {
+            "" => "(root)".to_string(),
+            _ => self.intent.scope.clone(),
         };
         let author = URL_SAFE_NO_PAD.encode(self.intent.author);
         let usher = URL_SAFE_NO_PAD.encode(self.intent.usher);
         let schema = match &self.intent.schema {
             Some(schema) => schema,
-            None => &"None",
+            None => &"None".to_string(),
         };
         let spacial = match &self.context.s {
-            Some(s) => format!("\"{}\": {}", s.s_ref, URL_SAFE_NO_PAD.encode(s.s_data)),
+            Some(s) => format!(
+                "\"{}\": {}",
+                s.s_ref,
+                URL_SAFE_NO_PAD.encode(s.s_data.clone())
+            ),
             None => "None".to_string(),
         };
         let mut sigs = Vec::new();
@@ -40,6 +44,7 @@ impl<'a> Rhex<'a> {
             Some(hash) => URL_SAFE_NO_PAD.encode(hash),
             None => "None".to_string(),
         };
+        let data: RhexData = minicbor::decode(&self.data).unwrap();
 
         format!(
             "Rhex: {{
@@ -69,7 +74,7 @@ impl<'a> Rhex<'a> {
             self.intent.rt,
             schema,
             data_hash,
-            self.data.print(),
+            data.print(),
             self.context.at,
             spacial,
             sigs,

@@ -37,6 +37,10 @@ enum Commands {
         /// Path to Rhex for signing
         #[arg(short, long, global = true)]
         output: Option<String>,
+
+        /// Delta of how long since usher's added `at`
+        #[arg(short, long)]
+        delta: Option<u64>,
     },
     Generate {
         #[arg(short, long)]
@@ -73,8 +77,16 @@ fn main() {
             sig_type,
             input,
             output,
+            delta,
         } => {
-            let _ = sign::sign(&cli.key.unwrap(), &enclave_path, &sig_type, &input, &output);
+            let _ = sign::sign(
+                &cli.key.unwrap(),
+                &enclave_path,
+                &sig_type,
+                &input,
+                &output,
+                &delta,
+            );
         }
         Commands::Generate { name } => {
             let _ = generate::generate(name, cli.key.unwrap());

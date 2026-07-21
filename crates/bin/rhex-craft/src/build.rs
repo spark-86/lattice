@@ -2,7 +2,7 @@ use std::fs;
 
 use anyhow::{Ok, Result};
 use base64::Engine as _;
-use scope::rhex::{Rhex, data::RhexData, intent::RhexIntent};
+use scope::rhex::{Rhex, intent::RhexIntent};
 
 pub fn build(
     prev: Option<String>,
@@ -16,14 +16,7 @@ pub fn build(
 ) -> Result<()> {
     // First, make sure we can get the data payload from the string
     let data_slice = match data {
-        Some(d) => {
-            let dat = fs::read(d);
-
-            if dat.is_err() {
-                anyhow::bail!("Can't read data file");
-            }
-            dat.unwrap()
-        }
+        Some(d) => fs::read(d)?,
         None => vec![],
     };
     let data_hash = if data_slice.len() > 0 {
@@ -56,31 +49,16 @@ pub fn build(
     let usher = base64::engine::general_purpose::URL_SAFE_NO_PAD
         .decode(usher)
         .unwrap();
-    let schema = match &schema {
-        Some(s) => {
-            let it = s.as_str();
-            Some(it)
-        }
-        None => None,
-    };
-    let data: Option<RhexData> = match &data_hash {
-        Some(_) => Some(minicbor::decode(&data_slice).unwrap()),
-        None => None,
-    };
-
     rhex.intent = RhexIntent::build(
         prev,
-        scope.as_str(),
+        scope,
         author.try_into().unwrap(),
         usher.try_into().unwrap(),
         schema,
-        rt.as_str(),
+        rt,
         data_hash,
     );
-    rhex.data = match data {
-        Some(d) => d,
-        None => RhexData::None,
-    };
+    rhex.data = data_slice;
     println!("R⬢ crafted.");
     rhex.disk_put(&output);
     println!("Wrote to {}.", output);

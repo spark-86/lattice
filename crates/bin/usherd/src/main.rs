@@ -11,7 +11,6 @@ pub mod cli;
 pub mod client;
 pub mod config;
 pub mod firing;
-pub mod iam;
 pub mod keys;
 pub mod process;
 pub mod rebuild;

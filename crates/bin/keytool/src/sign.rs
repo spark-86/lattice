@@ -9,6 +9,7 @@ pub fn sign(
     sig_type: &String,
     rhexfile: &String,
     output: &Option<String>,
+    time: &Option<u64>,
 ) -> Result<()> {
     // Load the rhex
     let mut rhex = rhex::Rhex::disk_get(rhexfile);
@@ -16,8 +17,8 @@ pub fn sign(
     let sig_type = match sig_type.as_str() {
         "author" => rhex::signature::RhexSignatureType::Author,
         "usher" => rhex::signature::RhexSignatureType::Usher,
-        "quorum" => rhex::signature::RhexSignatureType::Quorum,
-        "observer" => rhex::signature::RhexSignatureType::Observer,
+        "quorum" => rhex::signature::RhexSignatureType::Quorum(time.unwrap().clone()),
+        "observer" => rhex::signature::RhexSignatureType::Observer(time.unwrap().clone()),
         "other" => rhex::signature::RhexSignatureType::Other,
         _ => {
             println!("Invalid signature type");

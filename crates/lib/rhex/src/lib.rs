@@ -20,7 +20,6 @@ use minicbor::{Decode, Encode};
 */
 use crate::{
     context::RhexContext,
-    data::RhexData,
     intent::RhexIntent,
     signature::{RhexSignature, RhexSignatureType},
 };
@@ -35,31 +34,28 @@ pub mod signature;
 pub mod validate;
 
 #[derive(Debug, Clone, Encode, Decode)]
-pub struct Rhex<'a> {
+pub struct Rhex {
     #[n(0)]
     pub magic: [u8; 6],
     #[n(1)]
-    #[cbor(borrow)]
-    pub intent: RhexIntent<'a>,
+    pub intent: RhexIntent,
     #[n(2)]
-    #[cbor(borrow)]
-    pub data: RhexData<'a>,
+    pub data: Vec<u8>,
     #[n(3)]
-    #[cbor(borrow)]
-    pub context: RhexContext<'a>,
+    pub context: RhexContext,
     #[n(4)]
     pub sigs: Vec<RhexSignature>,
     #[n(5)]
     pub curr: Option<[u8; 32]>,
 }
 
-impl<'a> Rhex<'a> {
+impl Rhex {
     pub const MAGIC: [u8; 6] = *b"RHEX\x00\x03";
     pub fn new() -> Self {
         Self {
             magic: Rhex::MAGIC,
             intent: RhexIntent::new(),
-            data: RhexData::None,
+            data: vec![],
             context: RhexContext { at: 0, s: None },
             sigs: Vec::new(),
             curr: None,
@@ -81,13 +77,17 @@ impl<'a> Rhex<'a> {
                 hasher.update(&self.context.get_hash());
                 hasher.finalize().into()
             }
-            RhexSignatureType::Quorum | RhexSignatureType::Observer | RhexSignatureType::Other => {
+            RhexSignatureType::Quorum(t) | RhexSignatureType::Observer(t) => {
                 let mut hasher = blake3::Hasher::new();
                 hasher.update(b"RHEX_OBSERVED_SIG_0");
+                // This is what google said to do, I feel like it should
+                // be little endian but what do I know?
+                hasher.update(&t.to_be_bytes());
                 hasher.update(&self.sigs[0].sig);
                 hasher.update(&self.sigs[1].sig);
                 hasher.finalize().into()
             }
+            RhexSignatureType::Other => unimplemented!(),
         }
     }
 
@@ -106,8 +106,8 @@ impl<'a> Rhex<'a> {
         minicbor::to_vec(&self).unwrap()
     }
 
-    pub fn from_vec(data: &'a [u8]) -> Self {
-        let restored_rhex: Rhex<'a> = minicbor::decode(data).unwrap();
+    pub fn from_vec(data: &[u8]) -> Self {
+        let restored_rhex: Rhex = minicbor::decode(data).unwrap();
         restored_rhex
     }
 

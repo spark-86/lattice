@@ -18,12 +18,12 @@ use minicbor::{Decode, Encode};
         details.
 */
 
-#[derive(Debug, Clone, Copy, Encode, Decode)]
-pub struct RhexIntent<'a> {
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct RhexIntent {
     #[n(0)]
     pub prev: Option<[u8; 32]>,
     #[n(1)]
-    pub scope: &'a str,
+    pub scope: String,
     #[n(2)]
     pub nonce: [u8; 32],
     #[n(3)]
@@ -31,23 +31,23 @@ pub struct RhexIntent<'a> {
     #[n(4)]
     pub usher: [u8; 32],
     #[n(5)]
-    pub schema: Option<&'a str>,
+    pub schema: Option<String>,
     #[n(6)]
-    pub rt: &'a str,
+    pub rt: String,
     #[n(7)]
     pub data_hash: Option<[u8; 32]>,
 }
 
-impl<'a> RhexIntent<'a> {
+impl RhexIntent {
     pub fn new() -> Self {
         Self {
             prev: None,
-            scope: "",
+            scope: "".to_string(),
             nonce: [0; 32],
             author: [0; 32],
             usher: [0; 32],
             schema: None,
-            rt: "",
+            rt: "".to_string(),
             data_hash: None,
         }
     }
@@ -62,11 +62,11 @@ impl<'a> RhexIntent<'a> {
 
     pub fn build(
         prev: Option<[u8; 32]>,
-        scope: &'a str,
+        scope: String,
         author: [u8; 32],
         usher: [u8; 32],
-        schema: Option<&'a str>,
-        rt: &'a str,
+        schema: Option<String>,
+        rt: String,
         data_hash: Option<[u8; 32]>,
     ) -> Self {
         let mut intent = Self::new();

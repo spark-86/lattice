@@ -2,15 +2,15 @@ use rand::random;
 
 use crate::{Rhex, context::RhexContext, intent::RhexIntent};
 
-impl<'a> Rhex<'a> {
+impl Rhex {
     pub fn build(
         prev: Option<[u8; 32]>,
-        scope: &'a str,
+        scope: String,
         nonce: Option<[u8; 32]>,
         author: [u8; 32],
         usher: [u8; 32],
-        rt: &'a str,
-        schema: Option<&'a str>,
+        rt: String,
+        schema: Option<String>,
         data_hash: Option<[u8; 32]>,
     ) -> Self {
         let nonce = match nonce {
@@ -29,7 +29,7 @@ impl<'a> Rhex<'a> {
                 rt,
                 data_hash,
             },
-            data: crate::data::RhexData::None,
+            data: vec![],
             context: RhexContext { at: 0, s: None },
             sigs: Vec::new(),
             curr: None,

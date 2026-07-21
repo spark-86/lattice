@@ -66,7 +66,7 @@ pub fn check_rt_access(scope: &Scope, rhex: &Rhex) -> Result<CheckStatus> {
         return Ok(CheckStatus::AccessDenied);
     }
     let policy = scope.get_policy_at(rhex.context.at.clone());
-    let submittable = policy.can_submit(rhex.intent.rt, &groups);
+    let submittable = policy.can_submit(&rhex.intent.rt, &groups);
     if !submittable {
         return Ok(CheckStatus::RtNotAllowed);
     }

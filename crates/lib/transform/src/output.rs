@@ -9,14 +9,14 @@ use crate::error::TransformError;
 /// output [u8], with outbound intents getting routed
 /// out.
 #[derive(Debug, Clone, Encode, Decode)]
-pub struct TransformOutput<'a> {
+pub struct TransformOutput {
     #[b(0)]
-    pub outbound_intents: Option<Vec<RhexIntent<'a>>>,
+    pub outbound_intents: Option<Vec<RhexIntent>>,
     #[n(1)]
     pub err: Option<Vec<TransformError>>,
 }
 
-impl<'a> TransformOutput<'a> {
+impl TransformOutput {
     pub fn new() -> Self {
         Self {
             outbound_intents: None,
@@ -41,7 +41,7 @@ impl<'a> TransformOutput<'a> {
         false
     }
 
-    pub fn from_slice(data: &'a [u8]) -> Result<Self> {
+    pub fn from_slice(data: &[u8]) -> Result<Self> {
         Ok(minicbor::decode(data).unwrap())
     }
 }

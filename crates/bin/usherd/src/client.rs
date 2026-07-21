@@ -14,8 +14,7 @@ pub async fn run(usher: String, rhex_file: PathBuf, usher_map: PathBuf) -> Resul
         .unwrap()
         .try_into()
         .unwrap();
-    let usher_map = std::fs::read(usher_map)?;
-    let usher_map: usher::UsherMap = serde_cbor::from_slice(&usher_map)?;
+    let usher_map: usher::UsherMap = usher::map::disk_from(&usher_map.to_str().unwrap());
     let rhex = std::fs::read(rhex_file)?;
     let rhex: Vec<Rhex> = minicbor::decode(&rhex)?;
 

@@ -29,8 +29,8 @@ pub fn genesis(key: String, enclave_path: Option<String>, output: String) -> Res
     // Build data
     let mut buffer = Vec::new();
     let data = RhexData::Mixed {
-        meta: json.as_bytes(),
-        binary: &binary_vec.as_flattened(),
+        meta: json.as_bytes().to_vec(),
+        binary: binary_vec.as_flattened().to_vec(),
     };
     minicbor::encode(&data, &mut buffer).expect("Failed to encode CBOR");
     let mut hasher = blake3::Hasher::new();
@@ -39,10 +39,10 @@ pub fn genesis(key: String, enclave_path: Option<String>, output: String) -> Res
     // Build intent
     rhex.intent.gen_nonce();
     rhex.intent.prev = None;
-    rhex.intent.scope = "";
+    rhex.intent.scope = "".to_string();
     rhex.intent.author = key_conv.clone();
     rhex.intent.usher = key_conv.clone();
-    rhex.intent.rt = "lattice:genesis";
+    rhex.intent.rt = "lattice:genesis".to_string();
     rhex.intent.schema = None;
     rhex.intent.data_hash = Some(*hash.as_bytes());
 
@@ -63,8 +63,8 @@ pub fn genesis(key: String, enclave_path: Option<String>, output: String) -> Res
     });
     rhex.sigs.push(RhexSignature {
         pk: key_conv.clone(),
-        sig: enclave.sign(&key_conv, &rhex.get_hash(RhexSignatureType::Quorum))?,
-        t: RhexSignatureType::Quorum,
+        sig: enclave.sign(&key_conv, &rhex.get_hash(RhexSignatureType::Quorum(0)))?,
+        t: RhexSignatureType::Quorum(0),
     });
 
     // Mark us complete

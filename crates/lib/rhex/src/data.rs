@@ -1,8 +1,9 @@
+use anyhow::Result;
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use minicbor::{Decode, Encode};
 
-#[derive(Debug, Clone, Copy, Encode, Decode)]
-pub enum RhexData<'a> {
+#[derive(Debug, Clone, Encode, Decode)]
+pub enum RhexData {
     #[n(0)]
     None,
 
@@ -10,28 +11,28 @@ pub enum RhexData<'a> {
     Json(
         #[b(0)]
         #[cbor(with = "minicbor::bytes")]
-        &'a [u8],
+        Vec<u8>,
     ),
 
     #[n(2)]
     Binary(
         #[b(0)]
         #[cbor(with = "minicbor::bytes")]
-        &'a [u8],
+        Vec<u8>,
     ),
 
     #[n(3)]
     Mixed {
         #[b(0)]
         #[cbor(with = "minicbor::bytes")]
-        meta: &'a [u8],
+        meta: Vec<u8>,
         #[b(1)]
         #[cbor(with = "minicbor::bytes")]
-        binary: &'a [u8],
+        binary: Vec<u8>,
     },
 }
 
-impl<'a> RhexData<'a> {
+impl RhexData {
     pub fn print(&self) -> String {
         match self {
             RhexData::None => "None".to_string(),
@@ -43,5 +44,11 @@ impl<'a> RhexData<'a> {
                 format!("Meta: {}\n\t\tBinary: {}", meta_str, binary_str)
             }
         }
+    }
+
+    pub fn to_vec(&self) -> Result<Vec<u8>> {
+        let mut buf = Vec::new();
+        minicbor::encode(self, &mut buf)?;
+        Ok(buf)
     }
 }

@@ -498,6 +498,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
+name = "iam"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "lattice",
+ "minicbor",
+]
+
+[[package]]
 name = "id-arena"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1100,8 +1109,8 @@ name = "usher"
 version = "0.1.0"
 dependencies = [
  "key",
+ "minicbor",
  "serde",
- "serde_cbor",
 ]
 
 [[package]]
@@ -1110,14 +1119,15 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "base64",
+ "blake3",
  "clap",
  "ed25519-dalek",
  "futures",
+ "iam",
  "key",
  "lattice",
  "minicbor",
  "serde",
- "serde_cbor",
  "serde_json",
  "time",
  "tokio",

@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use minicbor::{Decode, Encode};
 
 use crate::location::UsherLocation;
 pub use crate::map::UsherMap;
@@ -6,11 +6,16 @@ pub use crate::map::UsherMap;
 pub mod location;
 pub mod map;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct Usher {
+    #[n(0)]
     pub name: Option<String>,
+    #[n(1)]
+    #[cbor(with = "minicbor::bytes")]
     pub pk: [u8; 32],
+    #[n(2)]
     pub location: UsherLocation,
+    #[n(3)]
     pub last_updated: u64,
 }
 
