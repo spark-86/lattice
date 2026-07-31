@@ -15,3 +15,5 @@ rhex = { path = "../rhex" }
 hex = { workspace = true }
 anyhow = { workspace = true }
 minicbor = { workspace = true }
+transform = { path = "../transform" }
+util = { path = "../util" }

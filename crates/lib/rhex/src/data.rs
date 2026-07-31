@@ -41,7 +41,7 @@ impl RhexData {
             RhexData::Mixed { meta, binary } => {
                 let meta_str = serde_json::to_string(meta).unwrap();
                 let binary_str = URL_SAFE_NO_PAD.encode(binary);
-                format!("Meta: {}\n\t\tBinary: {}", meta_str, binary_str)
+                return format!("Meta: {}\n\t\tBinary: {}", meta_str, binary_str);
             }
         }
     }

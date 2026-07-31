@@ -12,7 +12,7 @@ pub fn sign(
     time: &Option<u64>,
 ) -> Result<()> {
     // Load the rhex
-    let mut rhex = rhex::Rhex::disk_get(rhexfile);
+    let mut rhex = rhex::Rhex::single_disk_get(rhexfile);
     // Build the signature
     let sig_type = match sig_type.as_str() {
         "author" => rhex::signature::RhexSignatureType::Author,
@@ -42,7 +42,7 @@ pub fn sign(
         Some(o) => o,
         None => rhexfile,
     };
-    rhex.disk_put(output);
+    rhex.single_disk_put(output);
 
     Ok(())
 }

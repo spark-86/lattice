@@ -70,6 +70,6 @@ pub fn genesis(key: String, enclave_path: Option<String>, output: String) -> Res
     // Mark us complete
     rhex.curr = Some(rhex.calc_curr());
 
-    rhex.disk_put(&output);
+    rhex.single_disk_put(&output);
     Ok(())
 }

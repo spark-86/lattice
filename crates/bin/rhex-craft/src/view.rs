@@ -2,7 +2,8 @@ use anyhow::Result;
 use scope::rhex;
 
 pub fn view(input: String) -> Result<()> {
-    let rhex = rhex::Rhex::disk_get(&input);
+    // FIXME: This needs to work with the chains as well.
+    let rhex = rhex::Rhex::single_disk_get(&input);
     println!("{}", rhex.pretty_print());
     let valid = rhex.validate();
     match valid {

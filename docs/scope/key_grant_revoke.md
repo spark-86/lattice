@@ -18,7 +18,6 @@ RhexData::Mixed {
         ]
         "eff": 0,
         "exp": 1000000000000000000,
-        "issued": 1234,
         "tags": [
             "dingle",
             "berries"

@@ -25,10 +25,8 @@ pub fn rebuild(config: &UsherdConfig) -> Result<Lattice> {
     let root_scope = fs::read(&root_scope_bootstrap)?;
     let root_rhex: Vec<Rhex> = minicbor::decode(&root_scope)?;
 
-    // Save the bootstrapped root scope to {config.scopes}/
-    for rhex in &root_rhex {
-        rhex.disk_put(&scope_path);
-    }
+    // Save the bootstrapped root scope to {config.scopes}/-root-.rhex
+    fs::write(format!("{}-root-.rhex", &config.scopes), &root_scope)?;
 
     // Make the root scope an object
     let mut root_scope = lattice::scope::Scope::new(&"".to_string(), lattice::Lattice::GENESIS_KEY);

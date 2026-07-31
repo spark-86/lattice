@@ -1,15 +1,15 @@
-use std::fs;
+use std::path::PathBuf;
 
 use anyhow::Result;
 use iam::IAm;
-use lattice::{Rhex, rhex::intent::RhexIntent, scope::Scope};
+use lattice::{
+    Rhex,
+    rhex::{check::CheckStatus, intent::RhexIntent},
+    scope::Scope,
+};
 use transform::{descriptor::DescriptorAction, registry::TransformRegistry};
 
-use crate::{
-    check::{self, CheckStatus},
-    config::UsherdConfig,
-    firing,
-};
+use crate::{config::UsherdConfig, firing};
 
 pub fn append(
     config: &UsherdConfig,
@@ -18,18 +18,10 @@ pub fn append(
     trans_registry: TransformRegistry,
     iam: &IAm,
 ) -> Result<(Vec<CheckStatus>, Option<Vec<RhexIntent>>)> {
+    // TODO: nonce check
     let mut outputs = Vec::new();
-    outputs.push(check::check_data_size(rhex)?);
-    outputs.push(check::check_schema(rhex)?);
-    outputs.push(check::check_same_scope(scope, rhex)?);
-    outputs.push(check::check_prev(scope, rhex)?);
-    outputs.push(check::check_nonce(scope, rhex)?);
-    outputs.push(check::check_rt_access(scope, rhex)?);
-    outputs.push(check::check_usher(scope, rhex)?);
-    // Check all the sigs
-    for i in 0..rhex.sigs.len() {
-        outputs.push(check::check_sig(rhex, i)?);
-    }
+    let mut check = scope.final_check(rhex)?;
+    outputs.append(&mut check);
     // Make sure we are the usher being submitted to
     if !iam.am_i(&rhex.intent.usher)? {
         outputs.push(CheckStatus::InvalidUsher);
@@ -37,31 +29,32 @@ pub fn append(
 
     // Fire transforms
     let (status, intents) =
-        firing::fire_transforms(rhex, trans_registry, DescriptorAction::Validate)?;
+        firing::fire_transforms(rhex, trans_registry, DescriptorAction::Appending)?;
     outputs.push(status);
 
     // Strip all the successes and see if there's anything left
     outputs.retain(|s| *s != CheckStatus::Success);
     if outputs.len() > 0 {
-        return Ok((outputs, None));
+        return Ok((outputs, Some(intents)));
     };
 
     // Ok, we have the all clear.
 
     // Do the physical append
-    let rhex_file = fs::read(format!("{}{}/records.rhex", &config.scopes, &scope.name))?;
-    let mut rhex_objs: Vec<Rhex> = minicbor::decode(&rhex_file)?;
+    // Filename is "./scopes/scopename.rhex"
+    let scope_name = if scope.name == "".to_string() {
+        "-root-".to_string()
+    } else {
+        scope.name.clone()
+    };
+    let filename = PathBuf::from(format!("{}{}.rchain", &config.scopes, &scope_name));
+    let mut rhex_objs = Rhex::chain_from_disk(filename.clone())?;
+
     rhex_objs.push(rhex.clone());
-    let mut rhex_file = Vec::new();
-    minicbor::encode(rhex_objs, &mut rhex_file)?;
-    fs::write(
-        format!("{}{}/records.rhex", &config.scopes, &scope.name),
-        &rhex_file,
-    )?;
+    Rhex::chain_to_disk(filename, rhex_objs)?;
     // Update the scope head
     scope.head = rhex.curr.clone();
+    // TODO: Send out a chain update to our sister ushers.
 
     Ok((vec![CheckStatus::Success], Some(intents)))
 }
-
-pub enum AppendError {}

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use crate::{
     membership::Membership,
@@ -6,13 +6,18 @@ use crate::{
     ushers::{UsherAssignment, UsherRole},
 };
 
+use anyhow::Result;
 pub use rhex;
+use rhex::Rhex;
 
 pub mod build_from_genesis;
 pub mod can_submit;
+pub mod check;
+pub mod from_chain;
 pub mod get_policy_at;
 pub mod membership;
 pub mod policy;
+pub mod process_key;
 pub mod rule;
 pub mod ushers;
 pub mod validate;
@@ -74,27 +79,14 @@ impl Scope {
         }
     }
 
-    pub fn slurp_scope(&mut self, _path_prefix: String) -> Self {
-        // TODO: Redo without packing the Rhex to the scope, that
-        // functionality has been removed
-        /*let path = format!("{}/{}", path_prefix, self.name);
-        let mut done = false;
-        let mut next: Option<[u8; 32]> = self.head;
-        while !done {
-            let rhex_path = format!("{}/{}.rhex", path, hex::encode(next.unwrap()));
-            let rhex = rhex::Rhex::disk_get(&rhex_path);
-            self.add_rhex(rhex.clone());
-            next = rhex.intent.prev;
-            if next == None {
-                if rhex.intent.rt.ends_with(":genesis") {
-                    done = true;
-                } else {
-                    println!(
-                        "First record isn't a *:genesis, which should always be the case (see https://trust.archi/firstrecord)"
-                    );
-                }
-            }
-        }*/
-        self.clone()
+    /// # slurp_scope(&mut self, path)
+    /// This takes a Rhex chain named "{scopes}/{scope_name}.rchain"
+    /// and loads in into a Vec.
+    ///
+    pub fn slurp_scope(&mut self, path: String) -> Result<Vec<Rhex>> {
+        Ok(Rhex::chain_from_disk(PathBuf::from(format!(
+            "{}{}.rchain",
+            path, self.name
+        )))?)
     }
 }

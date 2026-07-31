@@ -1,11 +1,12 @@
 use anyhow::Result;
-use lattice::{Rhex, rhex::intent::RhexIntent};
+use lattice::{
+    Rhex,
+    rhex::{check::CheckStatus, intent::RhexIntent},
+};
 use transform::{
     context::TransformContext, descriptor::DescriptorAction, output::TransformOutput,
     registry::TransformRegistry,
 };
-
-use crate::check::CheckStatus;
 
 /// # fire_transforms
 /// This has to be the worst possible way to do this. This is the damn

@@ -4,13 +4,14 @@ use key::enclave::Enclave;
 use lattice::{
     Lattice, Rhex,
     rhex::{
+        check::CheckStatus,
         data::RhexData,
         signature::{RhexSignature, RhexSignatureType},
     },
 };
 use transform::registry::TransformRegistry;
 
-use crate::{check::CheckStatus, config::UsherdConfig, receive};
+use crate::{config::UsherdConfig, receive};
 
 pub mod append;
 pub mod quorum;

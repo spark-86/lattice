@@ -3,6 +3,7 @@ use key::enclave::Enclave;
 use lattice::{
     Rhex,
     rhex::{
+        check::CheckStatus,
         intent::RhexIntent,
         signature::{RhexSignature, RhexSignatureType},
     },
@@ -11,10 +12,7 @@ use lattice::{
 use time::MicroMarks;
 use transform::{descriptor::DescriptorAction, registry::TransformRegistry};
 
-use crate::{
-    check::{self, CheckStatus},
-    firing,
-};
+use crate::firing;
 
 pub fn recv_usher_sig(
     scope: &Scope,
@@ -23,15 +21,9 @@ pub fn recv_usher_sig(
     enclave: &Enclave,
 ) -> Result<(CheckStatus, Option<Rhex>, Vec<RhexIntent>)> {
     let mut outputs = Vec::new();
-    // check all the pertanent things
-    outputs.push(check::check_data_size(rhex)?);
-    outputs.push(check::check_schema(rhex)?);
-    outputs.push(check::check_same_scope(scope, rhex)?);
-    outputs.push(check::check_prev(scope, rhex)?);
-    outputs.push(check::check_nonce(scope, rhex)?);
-    outputs.push(check::check_rt_access(scope, rhex)?);
-    outputs.push(check::check_usher(scope, rhex)?);
-    outputs.push(check::check_sig(rhex, 0)?);
+    // check all the pertanent things. TODO: Add nonce check
+    let mut check = scope.full_check(rhex)?;
+    outputs.append(&mut check);
     // check for transforms for validation
     //let mut storage = Vec::new();
     let (status, intents) =

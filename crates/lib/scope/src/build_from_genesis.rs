@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+/*use std::path::PathBuf;
 
 use anyhow::Result;
 
@@ -11,8 +11,11 @@ impl Scope {
     /// assumes we have the head hash)
     ///
     pub fn build_from_genesis(path: String) -> Result<Self> {
+        // FIXME: This was done when we were loading Rhex by individual
+        // files. What we do now is load a Vec<Rhex> and parse that.
+        // I should really add this to github but like... eh. lazy. :/
         let mut done = false;
-        let genesis = rhex::Rhex::disk_get(format!("{}/genesis.rhex", path).as_str());
+        let genesis = rhex::Rhex::single_disk_get(format!("{}/genesis.rhex", path).as_str());
         let scope_name = &genesis.intent.scope.to_string();
         let mut scope = Scope::new(scope_name, genesis.intent.author.clone());
 
@@ -25,7 +28,7 @@ impl Scope {
             let rhex_path =
                 PathBuf::from(format!("{}/{}.rhex", scope_dir, hex::encode(next.unwrap())));
             if rhex_path.exists() {
-                let rhex = rhex::Rhex::disk_get(&rhex_path.to_str().unwrap());
+                let rhex = rhex::Rhex::single_disk_get(&rhex_path.to_str().unwrap());
                 let valid = rhex.validate();
 
                 if valid {
@@ -50,4 +53,4 @@ impl Scope {
         }
         Ok(scope)
     }
-}
+}*/

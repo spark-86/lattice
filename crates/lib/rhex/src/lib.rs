@@ -25,6 +25,8 @@ use crate::{
 };
 
 pub mod build;
+pub mod chain;
+pub mod check;
 pub mod context;
 pub mod data;
 pub mod data_bytes;
@@ -122,15 +124,12 @@ impl Rhex {
         hasher.finalize().into()
     }
 
-    pub fn disk_get(_path: &str) -> Self {
-        // Because of lifetimes I have to move this somewhere else
-        // I guess? I dunno. Seems dumb.
-        /*let data = std::fs::read(path).unwrap();
-        Self::from_vec(&data)*/
-        unimplemented!()
+    pub fn single_disk_get(path: &str) -> Self {
+        let data = std::fs::read(path).unwrap();
+        Self::from_vec(&data)
     }
 
-    pub fn disk_put(&self, path: &str) {
+    pub fn single_disk_put(&self, path: &str) {
         std::fs::write(path, &self.to_vec()).unwrap();
     }
 
