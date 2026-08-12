@@ -60,6 +60,17 @@ impl Scope {
         Ok(())
     }
 
+    /// # remove_membership
+    /// Removes a set of keys from the set of groups
+    ///
+    pub fn remove_membership(&mut self, keys: Vec<[u8; 32]>, groups: Vec<String>) {
+        for key in keys {
+            for group in &groups {
+                self.memberships.remove(&(key.clone(), group.clone()));
+            }
+        }
+    }
+
     /// # member_of_at
     /// Gets a Vec of group names that the key is a member of at the
     /// given time interval.

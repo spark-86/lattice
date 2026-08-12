@@ -1,15 +1,18 @@
+use std::fs;
+
 use base64::{Engine, engine};
 use ed25519_dalek::{Signature, Signer, Verifier};
-use serde::{Deserialize, Serialize};
+use minicbor::{Decode, Encode};
 
 pub mod enclave;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Encode, Decode)]
 pub struct Key {
-    #[serde(with = "serde_bytes")]
+    #[n(0)]
     pub sk: Option<[u8; 32]>,
-    #[serde(with = "serde_bytes")]
+    #[n(1)]
     pub pk: Option<[u8; 32]>,
+    #[n(2)]
     pub name: Option<String>,
 }
 
@@ -61,11 +64,19 @@ impl Key {
     }
 
     pub fn to_vec(&self) -> Vec<u8> {
-        serde_cbor::to_vec(&self).unwrap()
+        let mut output = Vec::new();
+        minicbor::encode(self, &mut output).unwrap();
+        output
     }
 
-    pub fn from_vec(data: Vec<u8>) -> Self {
-        serde_cbor::from_slice(&data).unwrap()
+    pub fn from_vec(data: &Vec<u8>) -> Self {
+        minicbor::decode(data).unwrap()
+    }
+
+    pub fn disk_get(key: &String) -> Self {
+        let data = fs::read(key).unwrap();
+        let key = minicbor::decode(&data).unwrap();
+        key
     }
 
     /// This generates the SigilID from the key.
@@ -75,13 +86,14 @@ impl Key {
         hasher.update(&self.pk.unwrap());
         let hash = hasher.finalize();
         let crockford = base32::encode(base32::Alphabet::Crockford, &hash.as_bytes()[0..10]);
-        format!(
+        let output = format!(
             "{}-{}-{}-{}",
             &crockford[0..4],
             &crockford[4..8],
             &crockford[8..12],
             &crockford[12..16]
-        )
+        );
+        output
     }
 
     pub fn pretty_format(&self, show_sk: bool) -> String {

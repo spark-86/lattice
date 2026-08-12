@@ -21,6 +21,7 @@ impl Scope {
                 "usher:assign" => scope.process_usher_assign(r)?,
                 "usher:revoke" => scope.process_usher_revoke(r)?,
                 "key:grant" => scope.process_key_grant(r)?,
+                "key:revoke" => scope.process_key_revoke(r)?,
                 _ => continue,
             }
         }

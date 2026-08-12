@@ -560,10 +560,9 @@ dependencies = [
  "blake3",
  "ed25519-dalek",
  "hex",
+ "minicbor",
  "rand",
  "serde",
- "serde_bytes",
- "serde_cbor",
 ]
 
 [[package]]
@@ -573,6 +572,7 @@ dependencies = [
  "anyhow",
  "base64",
  "clap",
+ "hex",
  "key",
  "rand",
  "rhex",

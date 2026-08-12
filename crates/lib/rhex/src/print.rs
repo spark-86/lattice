@@ -46,7 +46,7 @@ impl Rhex {
         };
         let data: RhexData = minicbor::decode(&self.data).unwrap();
 
-        format!(
+        let output = format!(
             "Rhex: {{
     \tmagic: {},
     \tintent: {{
@@ -79,6 +79,7 @@ impl Rhex {
             spacial,
             sigs,
             curr
-        )
+        );
+        output
     }
 }

@@ -4,6 +4,7 @@ pub use key::Key;
 pub use rhex::Rhex;
 
 mod generate;
+mod import;
 mod sign;
 mod vanity;
 mod view;
@@ -31,7 +32,7 @@ enum Commands {
         sig_type: String,
 
         /// Path to Rhex for signing/verifying
-        #[arg(short, long, global = true)]
+        #[arg(short, long)]
         input: String,
 
         /// Path to Rhex for signing
@@ -56,6 +57,10 @@ enum Commands {
     Vanity {
         #[arg(short, long)]
         sigil_prefix: String,
+        #[arg(short, long)]
+        name: Option<String>,
+    },
+    Import {
         #[arg(short, long)]
         name: Option<String>,
     },
@@ -92,10 +97,13 @@ fn main() {
             let _ = generate::generate(name, cli.key.unwrap());
         }
         Commands::View { secret, rust } => {
-            view::view(&cli.key.unwrap(), secret, rust);
+            view::view(&cli.key.unwrap(), enclave_path, secret, rust);
         }
         Commands::Vanity { sigil_prefix, name } => {
             vanity::vanity(sigil_prefix, name, cli.key.unwrap());
+        }
+        Commands::Import { name } => {
+            let _ = import::import(enclave_path, name, cli.key.unwrap());
         }
     }
 }

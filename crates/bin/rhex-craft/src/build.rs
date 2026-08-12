@@ -2,7 +2,7 @@ use std::fs;
 
 use anyhow::{Ok, Result};
 use base64::Engine as _;
-use scope::rhex::{Rhex, intent::RhexIntent};
+use scope::rhex::{Rhex, data::RhexData, intent::RhexIntent};
 
 pub fn build(
     prev: Option<String>,
@@ -17,7 +17,7 @@ pub fn build(
     // First, make sure we can get the data payload from the string
     let data_slice = match data {
         Some(d) => fs::read(d)?,
-        None => vec![],
+        None => minicbor::to_vec(&RhexData::None)?,
     };
     let data_hash = if data_slice.len() > 0 {
         let mut hasher = blake3::Hasher::new();

@@ -62,4 +62,25 @@ impl Scope {
         }
         Ok(())
     }
+
+    pub fn process_key_revoke(&mut self, rhex: &Rhex) -> Result<()> {
+        let data: RhexData = minicbor::decode(&rhex.data)?;
+        let (meta, keys) = match &data {
+            RhexData::Mixed { meta, binary } => {
+                let meta_value: Value = serde_json::from_slice(&meta)?;
+                let keys: Vec<[u8; 32]> = minicbor::decode(&binary)?;
+                (meta_value, keys)
+            }
+            _ => anyhow::bail!("Invalid RhexData type"),
+        };
+
+        // Get groups
+        let groups = meta.get("groups");
+        if groups.is_some() {
+            let groups = util::value_to_string_arr(groups.unwrap().clone())?;
+            // Strip them
+            self.remove_membership(keys, groups);
+        }
+        Ok(())
+    }
 }

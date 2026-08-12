@@ -11,3 +11,4 @@ rand = { workspace = true }
 base64 = { workspace = true }
 anyhow = { workspace = true }
 serde_cbor = { workspace = true }
+hex = { workspace = true }
