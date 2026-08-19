@@ -22,8 +22,9 @@ pub struct UsherdConfig {
     /// ANYTHING you care about
     ///
     pub enclave: String,
-    /// Path to scope storage. Once again, just a dir of other
-    /// dirs, plus root scope in the main.
+    /// Path to scope storage. Once again, just a dir of
+    /// chain files. Each scope has it's own .rchain file, with root
+    /// being `-root-.rchain`
     ///
     /// ## Example
     /// ```

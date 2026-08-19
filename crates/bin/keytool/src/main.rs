@@ -103,7 +103,7 @@ fn main() {
             vanity::vanity(sigil_prefix, name, cli.key.unwrap());
         }
         Commands::Import { name } => {
-            let _ = import::import(enclave_path, name, cli.key.unwrap());
+            import::import(enclave_path, name, cli.key.unwrap());
         }
     }
 }

@@ -15,21 +15,17 @@ pub fn build(
     output: String,
 ) -> Result<()> {
     // First, make sure we can get the data payload from the string
-    let data_slice = match data {
+    let data_slice = match &data {
         Some(d) => fs::read(d)?,
         None => minicbor::to_vec(&RhexData::None)?,
     };
-    let data_hash = if data_slice.len() > 0 {
+    let data_hash = if data_slice.len() > 0 && data != None {
         let mut hasher = blake3::Hasher::new();
         hasher.update(&data_slice);
         Some(hasher.finalize().as_bytes().clone())
     } else {
         None
     };
-    if data_slice.len() > 0 {
-        let mut data_hash = blake3::Hasher::new();
-        data_hash.update(&data_slice);
-    }
     let mut rhex = Rhex::new();
     let prev = match prev {
         // Take the base64 of the previous hash and decode it
@@ -46,18 +42,12 @@ pub fn build(
     let author = base64::engine::general_purpose::URL_SAFE_NO_PAD
         .decode(author)
         .unwrap();
+    let author: [u8; 32] = author.try_into().unwrap();
     let usher = base64::engine::general_purpose::URL_SAFE_NO_PAD
         .decode(usher)
         .unwrap();
-    rhex.intent = RhexIntent::build(
-        prev,
-        scope,
-        author.try_into().unwrap(),
-        usher.try_into().unwrap(),
-        schema,
-        rt,
-        data_hash,
-    );
+    let usher: [u8; 32] = usher.try_into().unwrap();
+    rhex.intent = RhexIntent::build(prev, scope, author, usher, schema, rt, data_hash);
     rhex.data = data_slice;
     println!("R⬢ crafted.");
     rhex.single_disk_put(&output);

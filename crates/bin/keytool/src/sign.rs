@@ -30,7 +30,8 @@ pub fn sign(
     let mut enclave = enclave::Enclave::new(Some(enclave_path.clone()));
     let _ = enclave.populate();
     let key = URL_SAFE_NO_PAD.decode(key).unwrap();
-    let sig = enclave.sign(&key.clone().try_into().unwrap(), &hash)?;
+    let key: [u8; 32] = key.try_into().unwrap();
+    let sig = enclave.sign(&key.clone(), &hash)?;
     // Add the signature to the rhex
     rhex.sigs.push(RhexSignature {
         pk: key.try_into().unwrap(),

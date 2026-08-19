@@ -28,6 +28,9 @@ pub fn run(input: String, output: String) -> Result<()> {
                 .unwrap()
                 .iter()
                 .map(|b| resolve_bytes(b.as_str().unwrap()).unwrap());
+            // FIXME: This is wrong. This just concats the binary arrays
+            // without a delimiter or size or anything. This needs to
+            // store as a Vec<Vec<u8>> instead.
             let mut bin_chain: Vec<u8> = Vec::new();
             for b in binary {
                 bin_chain = [bin_chain, b].concat();

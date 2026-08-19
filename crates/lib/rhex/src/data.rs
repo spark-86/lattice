@@ -47,8 +47,6 @@ impl RhexData {
     }
 
     pub fn to_vec(&self) -> Result<Vec<u8>> {
-        let mut buf = Vec::new();
-        minicbor::encode(self, &mut buf)?;
-        Ok(buf)
+        Ok(minicbor::to_vec(self)?)
     }
 }

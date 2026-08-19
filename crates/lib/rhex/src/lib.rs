@@ -53,6 +53,7 @@ pub struct Rhex {
 
 impl Rhex {
     pub const MAGIC: [u8; 6] = *b"RHEX\x00\x03";
+
     pub fn new() -> Self {
         Self {
             magic: Rhex::MAGIC,
