@@ -1,11 +1,24 @@
 use std::fs;
 
-pub fn vanity(sigil_prefix: String, name: Option<String>, output: String) {
+use key::KeyInstanced;
+
+pub fn vanity(
+    sigil_prefix: String,
+    name: Option<String>,
+    time: Option<u64>,
+    expires: Option<u64>,
+    output: String,
+) {
     let mut checkpoint: u64 = 0;
     let mut done = false;
+    let instanced = if time.is_some() {
+        KeyInstanced::Generated(time.unwrap())
+    } else {
+        KeyInstanced::Unknown
+    };
     let sigil_prefix = sigil_prefix.to_uppercase();
     while !done {
-        let key = key::Key::new(rand::random(), name.clone());
+        let key = key::Key::new(rand::random(), name.clone(), instanced.clone(), expires);
         let sigil_id = key.sigid_id();
         if sigil_id.starts_with(&sigil_prefix) {
             println!("Sigil ID: {}", sigil_id);

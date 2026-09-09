@@ -46,6 +46,10 @@ enum Commands {
     Generate {
         #[arg(short, long)]
         name: Option<String>,
+        #[arg(short, long)]
+        time: Option<u64>,
+        #[arg(short, long)]
+        expires: Option<u64>,
     },
     View {
         #[arg(long)]
@@ -59,10 +63,18 @@ enum Commands {
         sigil_prefix: String,
         #[arg(short, long)]
         name: Option<String>,
+        #[arg(short, long)]
+        time: Option<u64>,
+        #[arg(short, long)]
+        expires: Option<u64>,
     },
     Import {
         #[arg(short, long)]
         name: Option<String>,
+        #[arg(short, long)]
+        time: Option<u64>,
+        #[arg(short, long)]
+        expires: Option<u64>,
     },
 }
 
@@ -93,17 +105,30 @@ fn main() {
                 &delta,
             );
         }
-        Commands::Generate { name } => {
-            let _ = generate::generate(name, cli.key.unwrap());
+        Commands::Generate {
+            name,
+            time,
+            expires,
+        } => {
+            let _ = generate::generate(name, cli.key.unwrap(), time, expires);
         }
         Commands::View { secret, rust } => {
             view::view(&cli.key.unwrap(), enclave_path, secret, rust);
         }
-        Commands::Vanity { sigil_prefix, name } => {
-            vanity::vanity(sigil_prefix, name, cli.key.unwrap());
+        Commands::Vanity {
+            sigil_prefix,
+            name,
+            time,
+            expires,
+        } => {
+            vanity::vanity(sigil_prefix, name, time, expires, cli.key.unwrap());
         }
-        Commands::Import { name } => {
-            import::import(enclave_path, name, cli.key.unwrap());
+        Commands::Import {
+            name,
+            time,
+            expires,
+        } => {
+            import::import(enclave_path, name, cli.key.unwrap(), time, expires);
         }
     }
 }

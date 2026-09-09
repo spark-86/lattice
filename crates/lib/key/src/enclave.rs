@@ -2,7 +2,7 @@ use std::fs;
 
 use anyhow::{Ok, Result};
 
-use crate::Key;
+use crate::{Key, KeyInstanced};
 
 pub struct Enclave {
     path: String,
@@ -93,8 +93,13 @@ impl Enclave {
     /// # generate(name)
     /// Creates a new key with `name` and returns it.
     ///
-    pub fn generate(&mut self, name: Option<String>) -> Result<Key> {
-        let mut key = Key::generate(name);
+    pub fn generate(
+        &mut self,
+        name: Option<String>,
+        time: Option<u64>,
+        expires: Option<u64>,
+    ) -> Result<Key> {
+        let mut key = Key::generate(name, time, expires);
         let mut buf = Vec::new();
         minicbor::encode(&key, &mut buf)?;
         let data = buf;
@@ -118,8 +123,19 @@ impl Enclave {
     /// # import(sk, name)
     /// imports a key into the enclave.
     ///
-    pub fn import(&mut self, sk: [u8; 32], name: Option<String>) -> Result<Key> {
-        let key = Key::new(sk, name);
+    pub fn import(
+        &mut self,
+        sk: [u8; 32],
+        name: Option<String>,
+        time: Option<u64>,
+        expires: Option<u64>,
+    ) -> Result<Key> {
+        let instanced = if time.is_some() {
+            KeyInstanced::Imported(time.unwrap())
+        } else {
+            KeyInstanced::Unknown
+        };
+        let key = Key::new(sk, name, instanced, expires);
         self.keys.push(key.pk.unwrap());
         let mut buf = Vec::new();
         minicbor::encode(&key, &mut buf)?;

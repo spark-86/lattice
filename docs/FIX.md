@@ -10,7 +10,7 @@ This is an audit done by me of where we need to finish for an operational usher.
 
 ### `json2rdata`
 
-- Fix `convert.rs` Line 34: change it to a Vec of Vec instead a blind concat.
+- **[FIXED]** Fix `convert.rs` Line 34: change it to a Vec of Vec instead a blind concat.
 
 ### `keytool`
 
@@ -18,7 +18,7 @@ This is an audit done by me of where we need to finish for an operational usher.
 
 ### `rhex-craft`
 
-- Genesis needs to create more than just the genesis record. It really needs to do genesis, `policy:set` and `key:assign`s 
+- Genesis needs to create more than just the genesis record. It really needs to do genesis, `policy:set` and `key:assign`s
 - Iffy on making `view` work with chain files
 - Document how to actually use this tool.
 
@@ -26,7 +26,7 @@ This is an audit done by me of where we need to finish for an operational usher.
 
 ### `receive/append.rs`
 
-- Nonce check needs to be implemented. Since we don't store the chains live in memory this has to be a deliberate loading action.
+- Nonce check needs to be implemented. Since we don't store the chains live in memory this has to be a deliberate loading action. (Or make the nonces a HashSet on the scope?)
 - Update sister ushers via broadcasted append.
 
 ### `receive/mod.rs`
@@ -81,7 +81,6 @@ I think it works as is, I just... I dunno. It doesn't feel right.
 - `fn check_schema` currently does nothing. It should check the schema.
 - `CheckStatus::NotThisScope` really doesn't make sense, because to see what scope we are working with, we have to inspect the scope field... and then see if we even have this scope in our actor array, so `Scope::check_same_scope()` will never fail, because we've basically already checked that.
 
-
 #### `data_bytes.rs`
 
 - I feel like this whole file can go since we aren't using *serde_cbor* anymore
@@ -94,7 +93,7 @@ I think it works as is, I just... I dunno. It doesn't feel right.
 
 #### `build_from_genesis`
 
--  this whole thing needs to be updated to where we load the whole chain and work from that.
+- this whole thing needs to be updated to where we load the whole chain and work from that.
 
 #### `from_chain.rs`
 
@@ -107,8 +106,8 @@ I think it works as is, I just... I dunno. It doesn't feel right.
 
 #### `validate.rs`
 
-- `fn check_nonce_reused` takes a Vec<Rhex> which is not available to us at that point. They pretty much all live in `.rchain` files to be loaded as needed.
-- `fn latest_time` is just an alias to `scope.updated` which feels wrong. Yes, the `updated` should equal the latest `context.at` but still, I feel like this could get out of sync and be problematic 
+- `fn check_nonce_reused` takes a Vec\<Rhex\> which is not available to us at that point. They pretty much all live in `.rchain` files to be loaded as needed.
+- `fn latest_time` is just an alias to `scope.updated` which feels wrong. Yes, the `updated` should equal the latest `context.at` but still, I feel like this could get out of sync and be problematic
 
 ### `time`
 
@@ -117,7 +116,3 @@ What the hell are we doing with this? Like... we need to make the call, are we u
 ### `transform`
 
 Let me just start off with how unhappy I am that I had to sneak a core component of the Computational Reality Engine in here. Like this feels like cramming a square peg in a round hole. But the lattice needs modular action. Scopes need to touch and interact with systems in a meaningful way. It's also like the least highest priority right now, because we need to make sure record submission works long before getting this to work.
-
-
-
- 

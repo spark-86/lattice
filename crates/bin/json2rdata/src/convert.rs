@@ -28,16 +28,13 @@ pub fn run(input: String, output: String) -> Result<()> {
                 .unwrap()
                 .iter()
                 .map(|b| resolve_bytes(b.as_str().unwrap()).unwrap());
-            // FIXME: This is wrong. This just concats the binary arrays
-            // without a delimiter or size or anything. This needs to
-            // store as a Vec<Vec<u8>> instead.
-            let mut bin_chain: Vec<u8> = Vec::new();
+            let mut bin_chain: Vec<Vec<u8>> = Vec::new();
             for b in binary {
-                bin_chain = [bin_chain, b].concat();
+                bin_chain.push(b.clone());
             }
             rhex::data::RhexData::Mixed {
                 meta: meta.into_bytes(),
-                binary: bin_chain.clone(),
+                binary: minicbor::to_vec(&bin_chain).unwrap(),
             }
         }
         _ => panic!("Unknown data type: {}", data_type),
