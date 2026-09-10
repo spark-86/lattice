@@ -121,12 +121,31 @@ impl UsherdConfig {
             .ok()
             .and_then(|contents| serde_json::from_str(&contents).ok())
             .unwrap_or_default();
+        let root_path = if file_config.root.is_some() {
+            tail_slash(file_config.root.unwrap())
+        } else {
+            "./".to_string()
+        };
+        let enclave = if file_config.enclave.is_some() {
+            tail_slash(file_config.enclave.unwrap())
+        } else {
+            "./keys/".to_string()
+        };
+        let scopes = if file_config.scopes.is_some() {
+            tail_slash(file_config.scopes.unwrap())
+        } else {
+            "./scopes/".to_string()
+        };
+        let bootstrap = if file_config.bootstrap.is_some() {
+            tail_slash(file_config.bootstrap.unwrap())
+        } else {
+            "./bootstrap/".to_string()
+        };
+
         Ok(Self {
-            root_path: file_config.root.unwrap_or_else(|| "./".to_string()),
-            enclave: file_config.enclave.unwrap_or_else(|| "./keys/".to_string()),
-            scopes: file_config
-                .scopes
-                .unwrap_or_else(|| "./scopes/".to_string()),
+            root_path,
+            enclave,
+            scopes,
             i_am: file_config
                 .i_am
                 .unwrap_or_else(|| "./i-am.cbor".to_string()),
@@ -138,10 +157,16 @@ impl UsherdConfig {
                 .unwrap_or_else(|| "./ushers.cbor".to_string()),
             port: file_config.port.unwrap_or_else(|| 1984),
             rebuild: file_config.rebuild.unwrap_or_else(|| false),
-            bootstrap: file_config
-                .bootstrap
-                .unwrap_or_else(|| "./bootstrap/".to_string()),
+            bootstrap,
         })
+    }
+}
+
+fn tail_slash(path: String) -> String {
+    if path.ends_with("/") {
+        path
+    } else {
+        format!("{}/", path)
     }
 }
 

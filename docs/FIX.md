@@ -26,7 +26,7 @@ This is an audit done by me of where we need to finish for an operational usher.
 
 ### `receive/append.rs`
 
-- Nonce check needs to be implemented. Since we don't store the chains live in memory this has to be a deliberate loading action. (Or make the nonces a HashSet on the scope?)
+- **[FIXED]** Nonce check needs to be implemented. Since we don't store the chains live in memory this has to be a deliberate loading action. (Or make the nonces a HashSet on the scope?)
 - Update sister ushers via broadcasted append.
 
 ### `receive/mod.rs`
