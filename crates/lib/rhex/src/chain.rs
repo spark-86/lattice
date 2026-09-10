@@ -5,7 +5,7 @@ use anyhow::Result;
 use crate::Rhex;
 
 impl Rhex {
-    pub fn chain_from_disk(path: PathBuf) -> Result<Vec<Rhex>> {
+    pub fn chain_from_disk(path: &PathBuf) -> Result<Vec<Rhex>> {
         let file = fs::read(path)?;
         let rhex: Vec<Rhex> = minicbor::decode(&file)?;
         Ok(rhex)

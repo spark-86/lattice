@@ -14,13 +14,13 @@ This is an audit done by me of where we need to finish for an operational usher.
 
 ### `keytool`
 
-- Key file structure is all over the place. Like I don't think any of it's the same across the entire enclave which is weird, it shouldn't be like that. (import.rs, vanity.rs (although that has a reason to export single keys), view.rs is totally wrong)
+- **[FIXED]** (Rebuilt keytool to use new structure) Key file structure is all over the place. Like I don't think any of it's the same across the entire enclave which is weird, it shouldn't be like that. (import.rs, vanity.rs (although that has a reason to export single keys), view.rs is totally wrong)
 
 ### `rhex-craft`
 
 - Genesis needs to create more than just the genesis record. It really needs to do genesis, `policy:set` and `key:assign`s
-- Iffy on making `view` work with chain files
-- Document how to actually use this tool.
+- **[FIXED]** Iffy on making `view` work with chain files
+- **[IN PROGRESS]** Document how to actually use this tool.
 
 ## `usherd` - The evil monkey
 
@@ -72,7 +72,7 @@ I think it works as is, I just... I dunno. It doesn't feel right.
 
 #### `enclave.rs`
 
-- Prolly remove `fn disk_put` because it really does nothing. We don't store a private key in the *enclave* as a live value, so there's never anything to put really.
+- **[FIXED]** (moved disk_put to `/crate/lib/key/lib.rs` so it's part of the key itself, instead of putting in the enclave where we just handle `pk` and not `sk`) Prolly remove `fn disk_put` because it really does nothing. We don't store a private key in the *enclave* as a live value, so there's never anything to put really.
 
 ### `rhex`
 

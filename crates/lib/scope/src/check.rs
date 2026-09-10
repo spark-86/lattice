@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
 use rhex::{Rhex, check::CheckStatus};
 
@@ -36,9 +38,9 @@ impl Scope {
     /// Checks to see if the `intent.nonce` has been reused for this
     /// Scope
     ///
-    pub fn check_nonce(self, nonce: [u8; 32], rhex: &Vec<Rhex>) -> Result<CheckStatus> {
+    pub fn check_nonce(self, nonce: [u8; 32], path: &PathBuf) -> Result<CheckStatus> {
         // skim for nonce reuse
-        if self.check_nonce_reused(nonce, &rhex) {
+        if self.check_nonce_reused(nonce, path).unwrap() {
             return Ok(CheckStatus::NonceReused);
         };
         Ok(CheckStatus::Success)

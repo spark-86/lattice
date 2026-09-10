@@ -84,7 +84,7 @@ impl Scope {
     /// and loads in into a Vec.
     ///
     pub fn slurp_scope(&mut self, path: String) -> Result<Vec<Rhex>> {
-        Ok(Rhex::chain_from_disk(PathBuf::from(format!(
+        Ok(Rhex::chain_from_disk(&PathBuf::from(format!(
             "{}{}.rchain",
             path, self.name
         )))?)

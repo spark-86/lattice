@@ -48,7 +48,7 @@ pub fn append(
         scope.name.clone()
     };
     let filename = PathBuf::from(format!("{}{}.rchain", &config.scopes, &scope_name));
-    let mut rhex_objs = Rhex::chain_from_disk(filename.clone())?;
+    let mut rhex_objs = Rhex::chain_from_disk(&filename)?;
 
     rhex_objs.push(rhex.clone());
     Rhex::chain_to_disk(filename, rhex_objs)?;
