@@ -14,7 +14,7 @@ use transform::{
 /// modular execution is important to the Lattice.
 pub fn fire_transforms(
     rhex: &Rhex,
-    trans_registry: TransformRegistry,
+    trans_registry: &mut TransformRegistry,
     action: DescriptorAction,
 ) -> Result<(CheckStatus, Vec<RhexIntent>)> {
     let mut storage = Vec::new();

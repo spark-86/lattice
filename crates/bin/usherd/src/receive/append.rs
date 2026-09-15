@@ -15,7 +15,7 @@ pub fn append(
     config: &UsherdConfig,
     scope: &mut Scope,
     rhex: &Rhex,
-    trans_registry: TransformRegistry,
+    trans_registry: &mut TransformRegistry,
     iam: &IAm,
 ) -> Result<(Vec<CheckStatus>, Option<Vec<RhexIntent>>)> {
     // TODO: nonce check

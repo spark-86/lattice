@@ -13,7 +13,7 @@ pub fn view(input: String) -> Result<()> {
             false => println!("❌ Invalid"),
         }
     } else if input.ends_with(".rchain") {
-        let rhex = rhex::Rhex::chain_from_disk(PathBuf::from(input))?;
+        let rhex = rhex::Rhex::chain_from_disk(&PathBuf::from(input))?;
         let mut count = 0;
         for r in rhex {
             println!("R⬢ #{} in chain:", count);

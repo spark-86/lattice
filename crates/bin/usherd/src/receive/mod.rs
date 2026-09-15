@@ -11,18 +11,22 @@ use lattice::{
 };
 use transform::registry::TransformRegistry;
 
-use crate::{config::UsherdConfig, receive};
+use crate::{
+    config::UsherdConfig,
+    receive::{self, sign_out::sign_out},
+};
 
 pub mod append;
 pub mod quorum;
+pub mod sign_out;
 pub mod usher;
 
 pub fn receive(
     config: &UsherdConfig,
     rhex: Rhex,
-    trans_registry: TransformRegistry,
-    lattice: Lattice,
-    me: &IAm,
+    trans_registry: &mut TransformRegistry,
+    lattice: &mut Lattice,
+    me: &mut IAm,
 ) -> Result<(ReceiveStatus, Vec<Rhex>)> {
     let mut enclave = Enclave::new(Some(config.enclave.clone()));
     enclave.populate()?;
@@ -37,32 +41,25 @@ pub fn receive(
         }
         1 => {
             // We're here to get an usher sig
-            let scope = lattice.scopes.get(&rhex.intent.scope.to_string()).unwrap();
+            let mut output = Vec::new();
+
+            // FIXME: This should throw an error back to the submitter if we
+            // don't have this scope in our local collection.
+            let scope = lattice.scopes.get(&rhex.intent.scope.to_string());
+            if scope.is_none() {
+                // throw error here
+                // output.push(rhex) or something along the lines.
+            };
             let (status, signed, intents) =
-                receive::usher::recv_usher_sig(scope, &rhex, trans_registry, &enclave)?;
+                receive::usher::recv_usher_sig(scope.unwrap(), &rhex, trans_registry, &enclave)?;
 
             // We are here to sign over all the outbound Rhex that we generated.
             // TODO: Obviously we should probably not just blindly sign shit
             // going out. I guess some filter? I mean I guess when they install
             // transforms they know what the potential output is but like...
             // I dunno... still feels bad.
-            let mut output = Vec::new();
-            for i in intents {
-                let mut r = Rhex::new();
-                r.intent = i;
-                let sig = enclave.sign(
-                    &rhex.intent.author,
-                    &rhex.get_hash(RhexSignatureType::Author),
-                );
-                if sig.is_ok() {
-                    r.sigs.push(RhexSignature {
-                        pk: rhex.intent.author.clone(),
-                        sig: sig.unwrap(),
-                        t: RhexSignatureType::Author,
-                    });
-                    output.push(r);
-                }
-            }
+            let mut signed_out = sign_out(enclave, intents, &rhex.intent.author)?;
+
             if status != CheckStatus::Success {
                 return Ok((ReceiveStatus::FailedValidation(status), output));
             }
@@ -70,6 +67,7 @@ pub fn receive(
                 output.push(signed.unwrap());
                 return Ok((ReceiveStatus::Success, output));
             }
+            output.append(&mut signed_out);
             // TODO: This needs to actually make sure we aren't just
             // straight up submitting with a zero quorum scope. So
             // like we need to check `k` and see if it's one or less.

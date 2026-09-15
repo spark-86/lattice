@@ -17,7 +17,7 @@ use crate::firing;
 pub fn recv_usher_sig(
     scope: &Scope,
     rhex: &Rhex,
-    trans_registry: TransformRegistry,
+    trans_registry: &mut TransformRegistry,
     enclave: &Enclave,
 ) -> Result<(CheckStatus, Option<Rhex>, Vec<RhexIntent>)> {
     let mut outputs = Vec::new();

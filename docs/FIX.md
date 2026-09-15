@@ -24,6 +24,10 @@ This is an audit done by me of where we need to finish for an operational usher.
 
 ## `usherd` - The evil monkey
 
+### `config.rs`
+
+- **[FIXED]** Change all config vars that point to dirs end with a trailing `/` otherwise we end up with invalid paths. Idealy we should always assume the trailing `/` is available on any entries that are not singular file dependant.
+
 ### `receive/append.rs`
 
 - **[FIXED]** Nonce check needs to be implemented. Since we don't store the chains live in memory this has to be a deliberate loading action. (Or make the nonces a HashSet on the scope?)
@@ -45,7 +49,7 @@ This is an audit done by me of where we need to finish for an operational usher.
 
 ### `receive/usher.rs`
 
-- Could possibly do the nonce check here rather than `append.rs`
+- **[FIXED]** (Handled in `receive/append.rs`) Could possibly do the nonce check here rather than `append.rs`
 - Add spacial data, somehow. We still don't know where we even store spacial data so like... eh?
 
 ### `firing.rs`
