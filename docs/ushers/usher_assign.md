@@ -13,7 +13,8 @@ RhexPayload::Mixed {
     meta: json!({
         "roles": [
             "actor",
-            "mirror"
+            "mirror",
+            "quorum"
         ],
         "eff": 0,
         "exp": 1_000_000_000_000

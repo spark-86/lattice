@@ -10,6 +10,7 @@ use anyhow::Result;
 pub use rhex;
 use rhex::Rhex;
 
+pub mod append;
 pub mod build_from_genesis;
 pub mod can_submit;
 pub mod check;

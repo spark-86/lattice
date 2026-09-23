@@ -7,3 +7,5 @@ edition = "2024"
 serde = { workspace = true }
 key = { path = "../../lib/key" }
 minicbor = { workspace = true }
+rhex = { path = "../../lib/rhex" }
+anyhow = { workspace = true }

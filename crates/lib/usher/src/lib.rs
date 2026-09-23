@@ -1,4 +1,6 @@
+use anyhow::Result;
 use minicbor::{Decode, Encode};
+use rhex::{context::RhexContext, signature::RhexSignature};
 
 use crate::location::UsherLocation;
 pub use crate::map::UsherMap;
@@ -36,5 +38,23 @@ impl Usher {
             location,
             last_updated: now,
         }
+    }
+}
+
+#[derive(Debug, Clone, Encode, Decode)]
+pub struct UsherSigResponse {
+    #[n(0)]
+    pub context: RhexContext,
+    #[n(1)]
+    pub sig: RhexSignature,
+}
+
+impl UsherSigResponse {
+    pub fn new(context: RhexContext, sig: RhexSignature) -> Self {
+        Self { context, sig }
+    }
+
+    pub fn to_vec(&self) -> Result<Vec<u8>> {
+        Ok(minicbor::to_vec(self)?)
     }
 }

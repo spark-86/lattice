@@ -73,6 +73,34 @@ impl IAm {
         if entry.is_none() { Ok(false) } else { Ok(true) }
     }
 
+    /// # am_i_any(self, Vec<[u8; 32]>, local_only)
+    ///
+    /// Checks the Vec to see if we are any of those keys. The
+    /// local_only boolean is for when we want just keys that are
+    /// local to this node
+    ///
+    pub fn am_i_any(&self, keys: Vec<[u8; 32]>, local_only: bool) -> Result<Vec<[u8; 32]>> {
+        let mut out = Vec::new();
+        for key in keys {
+            let matching = self.entries.get(&key);
+            if matching.is_none() {
+                continue;
+            } else {
+                if local_only {
+                    match &matching.unwrap().location {
+                        IAmLocation::Local => {
+                            out.push(key.clone());
+                        }
+                        _ => continue,
+                    }
+                } else {
+                    out.push(key.clone());
+                }
+            }
+        }
+        Ok(out)
+    }
+
     /// # is_usher(self, scope, time)
     /// Checks if the key is in the entries map and matches at least
     /// one usher in the scope.

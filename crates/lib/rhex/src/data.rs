@@ -30,6 +30,8 @@ pub enum RhexData {
         #[cbor(with = "minicbor::bytes")]
         binary: Vec<u8>,
     },
+    #[n(4)]
+    Removed(#[n(0)] String),
 }
 
 impl RhexData {
@@ -41,12 +43,25 @@ impl RhexData {
             RhexData::Mixed { meta, binary } => {
                 let meta_str = serde_json::to_string(meta).unwrap();
                 let binary_str = URL_SAFE_NO_PAD.encode(binary);
-                return format!("Meta: {}\n\t\tBinary: {}", meta_str, binary_str);
+                format!("Meta: {}\n\t\tBinary: {}", meta_str, binary_str)
+            }
+            RhexData::Removed(s) => {
+                format!("Removed (Reason: {})", s)
             }
         }
     }
 
     pub fn to_vec(&self) -> Result<Vec<u8>> {
         Ok(minicbor::to_vec(self)?)
+    }
+
+    pub fn from_vec(data: Vec<u8>) -> Result<Self> {
+        Ok(minicbor::decode(&data)?)
+    }
+
+    pub fn get_hash(&self) -> [u8; 32] {
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(&self.to_vec().unwrap());
+        hasher.finalize().into()
     }
 }

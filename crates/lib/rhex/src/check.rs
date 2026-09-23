@@ -12,7 +12,7 @@ impl Rhex {
         let calc_curr = self.calc_curr();
         if self.curr.is_none() || (calc_curr != self.curr.unwrap()) {
             return Ok(CheckStatus::CurrentHashMismatch {
-                presented: self.curr,
+                presented: self.curr.unwrap(),
                 calculated: calc_curr,
             });
         };
@@ -100,10 +100,11 @@ pub enum CheckStatus {
     SpacialDataIncorrect(String),
     SignatureInvalid(u8),
     CurrentHashMismatch {
-        presented: Option<[u8; 32]>,
+        presented: [u8; 32],
         calculated: [u8; 32],
     },
     CurrentHashNotSet,
     RhexBloated(usize),
     NotUsherForThisScope,
+    Unknown,
 }

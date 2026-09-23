@@ -33,8 +33,8 @@ impl RhexSignature {
         let t = match self.t {
             RhexSignatureType::Author => &"Author".to_string(),
             RhexSignatureType::Usher => &"Usher".to_string(),
-            RhexSignatureType::Quorum(t) => &format!("Quorum: Δ{}", t),
-            RhexSignatureType::Observer(t) => &format!("Observer: Δ{}", t),
+            RhexSignatureType::Quorum(t) => &format!("Quorum @ {}", t),
+            RhexSignatureType::Observer(t) => &format!("Observer @ {}", t),
             RhexSignatureType::Other => "Other",
         };
         format!("{}: [{}]\n\t\t\t{}", t, pk, sig)

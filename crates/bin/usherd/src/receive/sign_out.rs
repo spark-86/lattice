@@ -13,7 +13,7 @@ use lattice::{
 /// Basically takes a Vec of RhexIntent and signs over all of them
 /// with the same key, and then returns the author-signed Rhex
 ///
-pub fn sign_out(enclave: Enclave, intents: Vec<RhexIntent>, pk: &[u8; 32]) -> Result<Vec<Rhex>> {
+pub fn sign_out(enclave: &Enclave, intents: Vec<RhexIntent>, pk: &[u8; 32]) -> Result<Vec<Rhex>> {
     let mut output = Vec::new();
     for i in intents {
         let mut r = Rhex::new();
