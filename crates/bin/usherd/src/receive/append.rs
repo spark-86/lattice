@@ -20,7 +20,7 @@ pub fn append(
 ) -> Result<(Vec<CheckStatus>, Option<Vec<RhexIntent>>)> {
     // TODO: nonce check
     let mut outputs = Vec::new();
-    let mut check = scope.final_check(rhex)?;
+    let mut check = scope.final_check(rhex, &0)?;
     outputs.append(&mut check);
     // Make sure we are the usher being submitted to
     if !iam.am_i(&rhex.intent.usher)? {

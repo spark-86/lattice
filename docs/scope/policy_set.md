@@ -4,6 +4,10 @@
 
 ## Example `policy:set`
 
+There is a default rule for `request:rhex`, in which it accepts from anyone at a rate of X. This can be explicitly overwritten.
+
+`o` can be omitted, and will assume the value of `k`
+
 ```rust
 Policy {
     name: Some("Dingus".to_string()),
@@ -14,6 +18,7 @@ Policy {
                 "lingus".to_string()
             ],
             k: 3,
+            o: 3, // observer count must always >= k
             quorum: [
                 "quorum".to_string()
             ],

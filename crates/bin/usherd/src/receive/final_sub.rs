@@ -48,7 +48,7 @@ pub fn recv_three_plus_sigs(
     }
 
     // Does the R⬢ validate?
-    let valid_result = scope.final_check(rhex)?;
+    let valid_result = scope.final_check(rhex, &time.as_micromarks())?;
     if valid_result[0] != CheckStatus::Success {
         return Ok((
             ReceiveStatus::FailedValidation(valid_result[0].clone()),

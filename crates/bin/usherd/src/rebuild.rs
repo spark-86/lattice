@@ -11,22 +11,30 @@ use crate::config::UsherdConfig;
 /// that bootstrapped state.
 pub fn rebuild(config: &UsherdConfig) -> Result<Lattice> {
     let scope_path = &config.scopes;
-    let usher_map_path = &config.usher_map;
-    let root_scope_bootstrap = format!("{}root_scope.cbor", &config.bootstrap);
+    let usher_map_in = format!("{}usher_map.cbor", &config.bootstrap);
+    let usher_map_out = &config.usher_map;
+    let root_scope_bootstrap = format!("{}root_scope.rchain", &config.bootstrap);
 
     // First, torch {path}/scopes and {path}/usher_map.cbor
     fs::remove_dir_all(&scope_path)?;
-    fs::remove_file(&usher_map_path)?;
+    fs::remove_file(&usher_map_out)?;
     fs::create_dir_all(&scope_path)?;
 
     // Load the bootstrap data
-    let ushers = usher::map::disk_from(&usher_map_path);
-    usher::map::disk_to(&usher_map_path, ushers);
+    let ushers = usher::map::disk_from(&usher_map_in);
+    usher::map::disk_to(&usher_map_out, ushers);
     let root_scope = fs::read(&root_scope_bootstrap)?;
     let root_rhex: Vec<Rhex> = minicbor::decode(&root_scope)?;
 
     // Save the bootstrapped root scope to {config.scopes}/-root-.rhex
-    fs::write(format!("{}-root-.rhex", &config.scopes), &root_scope)?;
+    fs::write(format!("{}-root-.rchain", &config.scopes), &root_scope)?;
+
+    // TODO: Prolly should actually run verification across the chain
+    // otherwise someone could modify the bootstrap chain and we'd
+    // just happily set our head to something invalid.
+    //
+    // Actually, the more I think about it, it needs to run across
+    // the chain anyways to build a policy for the root scope.
 
     // Make the root scope an object
     let mut root_scope = lattice::scope::Scope::new(&"".to_string(), lattice::Lattice::GENESIS_KEY);

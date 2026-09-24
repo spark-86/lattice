@@ -12,7 +12,7 @@ impl Scope {
     ) -> Result<Self> {
         let mut scope = Scope::new(&rhex[0].intent.scope, creator.clone());
         for r in &rhex {
-            let check = scope.final_check(r)?;
+            let check = scope.final_check(r, &r.context.at)?;
             if check.len() != 1 || check[0] != CheckStatus::Success {
                 return Err(anyhow!("Failed checks"));
             }

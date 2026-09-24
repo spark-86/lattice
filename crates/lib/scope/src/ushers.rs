@@ -8,6 +8,10 @@ use serde_json::Value;
 use crate::Scope;
 
 impl Scope {
+    /// # ushers_at(self, time)
+    ///
+    /// Returns the ushers and their assignments at a specified time
+    ///
     pub fn ushers_at(&self, time: u64) -> Result<Vec<([u8; 32], UsherAssignment)>> {
         let mut output = Vec::new();
         for (key, assignment) in &self.ushers {
@@ -23,6 +27,26 @@ impl Scope {
         Ok(output)
     }
 
+    /// # usher_index_at(self, time)
+    ///
+    /// This is similar to `Scope::ushers_at` except this doesn't
+    /// return the UsherAssignment with the list of public keys
+    ///
+    pub fn usher_index_at(&self, time: u64) -> Result<Vec<[u8; 32]>> {
+        let mut output = Vec::new();
+        let ushers = self.ushers_at(time)?;
+        for usher in ushers {
+            output.push(usher.0.clone());
+        }
+        Ok(output)
+    }
+
+    /// # ushers_by_priority(self, time)
+    ///
+    /// Provides the set of ushers for a specific time, but unlike
+    /// `Scope::ushers_at` it provides it's priority instead of
+    /// of assignment
+    ///
     pub fn ushers_by_priority(&self, time: u64) -> Result<Vec<([u8; 32], u8)>> {
         let mut curr_ushers = self.ushers_at(time)?;
         curr_ushers.sort_by_key(|&(_, ref asssignment)| asssignment.priority);
@@ -33,6 +57,11 @@ impl Scope {
         Ok(output)
     }
 
+    /// # ushers_by_role(self, time)
+    ///
+    /// Creates a hashmap of the ushers at a certain time based on
+    /// role, like `quorum` or `actor`
+    ///
     pub fn ushers_by_role(&self, time: u64) -> Result<HashMap<UsherRole, [u8; 32]>> {
         let mut output = HashMap::new();
         let curr_ushers = self.ushers_at(time)?;

@@ -106,5 +106,14 @@ pub enum CheckStatus {
     CurrentHashNotSet,
     RhexBloated(usize),
     NotUsherForThisScope,
+    QuorumCountUnder {
+        provided: usize,
+        k: usize,
+    },
+    ObserverCountUnder {
+        provided: usize,
+        o: usize,
+    },
+    SignatureNotInWindow(u8),
     Unknown,
 }

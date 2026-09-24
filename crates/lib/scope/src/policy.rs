@@ -1,3 +1,4 @@
+use anyhow::{Result, anyhow};
 use minicbor::{Decode, Encode};
 
 use crate::rule::Rule;
@@ -73,6 +74,7 @@ impl Policy {
             rules: vec![Rule {
                 append: vec!["world_line_zero".to_string()],
                 k: 1,
+                o: 1,
                 quorum: vec!["world_line_zero".to_string()],
                 delay: 1_000_000_000,
                 rt: vec!["lattice:genesis".to_string()],
@@ -94,6 +96,7 @@ impl Policy {
             rules: vec![Rule {
                 append: vec!["creator".to_string()],
                 k: 1,
+                o: 1,
                 quorum: vec!["creator".to_string()],
                 delay: 1_000_000_000_000,
                 rt: vec!["scope:genesis".to_string()],
@@ -137,6 +140,7 @@ impl Policy {
             let policy_set_rule = Rule {
                 append: vec![group.clone()],
                 k: 1,
+                o: 1,
                 quorum: vec![group.clone()],
                 delay: 1_000_000_000,
                 rt: vec!["policy:*".to_string()],
@@ -149,6 +153,7 @@ impl Policy {
             let key_rule = Rule {
                 append: vec![group.clone()],
                 k: 1,
+                o: 1,
                 quorum: vec![group.clone()],
                 delay: 1_000_000_000,
                 rt: vec!["key:*".to_string()],
@@ -159,13 +164,26 @@ impl Policy {
         !self.is_dangerous()
     }
 
-    pub fn get_k(&self, rt: &String, groups: &Vec<String>) -> anyhow::Result<u16> {
+    pub fn get_k(&self, rt: &String, groups: &Vec<String>) -> Result<u16> {
         for rule in &self.rules {
             if rule.valid(rt, groups)? {
                 return Ok(rule.k);
             }
         }
         Err(anyhow::anyhow!("Not a valid rule axis"))
+    }
+
+    /// # get_o(self, rt, groups)
+    ///
+    /// Gets the `o` value from the rules
+    ///
+    pub fn get_o(&self, rt: &String, groups: &Vec<String>) -> Result<u16> {
+        for rule in &self.rules {
+            if rule.valid(rt, groups)? {
+                return Ok(rule.o);
+            }
+        }
+        Err(anyhow!("Not a valid rule axis"))
     }
 
     pub fn get_window(&self, rt: &String, groups: &Vec<String>) -> anyhow::Result<u64> {

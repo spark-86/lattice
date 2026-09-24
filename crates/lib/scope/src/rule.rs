@@ -8,12 +8,14 @@ pub struct Rule {
     #[n(1)]
     pub k: u16,
     #[n(2)]
-    pub quorum: Vec<String>,
+    pub o: u16,
     #[n(3)]
-    pub delay: u64,
+    pub quorum: Vec<String>,
     #[n(4)]
-    pub rt: Vec<String>,
+    pub delay: u64,
     #[n(5)]
+    pub rt: Vec<String>,
+    #[n(6)]
     pub window: u64,
 }
 

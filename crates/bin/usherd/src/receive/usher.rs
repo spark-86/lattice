@@ -7,10 +7,8 @@ use lattice::{
         check::CheckStatus,
         context::RhexContext,
         data::RhexData,
-        intent::RhexIntent,
         signature::{RhexSignature, RhexSignatureType},
     },
-    scope::Scope,
     usher::UsherSigResponse,
 };
 use time::MicroMarks;
@@ -136,45 +134,4 @@ pub fn recv_one_sig(
     output.push(out_rhex);
     let output_packed = if output.len() > 0 { Some(output) } else { None };
     Ok((status, output_packed))
-}
-
-pub fn recv_usher_sig(
-    scope: &Scope,
-    rhex: &Rhex,
-    trans_registry: &mut TransformRegistry,
-    enclave: &Enclave,
-) -> Result<(CheckStatus, Option<Rhex>, Vec<RhexIntent>)> {
-    let mut outputs = Vec::new();
-    // check all the pertanent things. TODO: Add nonce check
-    let mut check = scope.full_check(rhex)?;
-    outputs.append(&mut check);
-    // check for transforms for validation
-    //let mut storage = Vec::new();
-    let (status, intents) =
-        firing::fire_transforms(rhex, trans_registry, DescriptorAction::Validate)?;
-    outputs.push(status);
-    outputs.retain(|s| *s != CheckStatus::Success);
-    if outputs.len() > 0 {
-        return Ok((outputs[0].clone(), None, vec![]));
-    };
-    // sign
-    let mut new_rhex = rhex.clone();
-    let sig = enclave.sign(&rhex.intent.usher, &rhex.get_hash(RhexSignatureType::Usher))?;
-    let time = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis() as i64;
-    // set time
-    new_rhex.context.at = time.as_micromarks();
-    // TODO: Add spacial data here... I haven't decided where the
-    // usher stores that at this moment so we're just gonna leave this
-    // here for now.
-    new_rhex.context.s = None;
-    new_rhex.sigs.push(RhexSignature {
-        pk: rhex.intent.usher.clone(),
-        sig,
-        t: RhexSignatureType::Usher,
-    });
-    // return
-    Ok((CheckStatus::Success, Some(new_rhex), intents))
 }

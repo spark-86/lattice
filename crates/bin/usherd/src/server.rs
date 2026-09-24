@@ -8,7 +8,11 @@ use lattice::{Lattice, Rhex};
 use tokio::sync::RwLock;
 use transform::registry::TransformRegistry;
 
-use crate::{config::UsherdConfig, rebuild, receive::receive};
+use crate::{
+    config::UsherdConfig,
+    rebuild,
+    receive::{ReceiveStatus, receive},
+};
 
 pub async fn run(config: UsherdConfig) -> Result<()> {
     let addr = format!("0.0.0.0:{}", config.port);
@@ -79,6 +83,7 @@ async fn handle_connection(
 
     while let Some(request_result) = framed.next().await {
         let bytes = request_result?;
+        let mut output = Vec::new();
 
         // 2. Decode using minicbor
         let rhex_list: Vec<Rhex> = minicbor::decode(&bytes)?;
@@ -89,20 +94,36 @@ async fn handle_connection(
             let mut trans_reg_guard = trans_registry.write().await;
             let mut iam_guard = iam.write().await;
             let mut enclave_guard = enclave.write().await;
+
             for rhex in &rhex_list {
                 // Append rhex here
-                let _receive_output = receive(
+                let receive_output = receive(
                     &config,
                     rhex,
                     &mut trans_reg_guard,
                     &mut lattice_guard,
                     &mut iam_guard,
                     &mut enclave_guard,
-                );
+                )?;
+                match receive_output.0 {
+                    ReceiveStatus::FailedValidation(_) => {
+                        // TODO: build failed validation R⬢ to return to client
+                    }
+                    ReceiveStatus::MissingSignature(_) => {
+                        // TODO: build failed validation R⬢ to return to client
+                    }
+                    // success means we have output from the append process
+                    // already to go, so we just have to attach it to the
+                    // output.
+                    ReceiveStatus::Success => {
+                        let mut out = receive_output.1.unwrap();
+                        output.append(&mut out);
+                    }
+                }
             }
         }
         let mut response = Vec::new();
-        minicbor::encode(&rhex_list, &mut response)?;
+        minicbor::encode(&output, &mut response)?;
 
         // 4. Send back through the frame
         framed.send(response.into()).await?;

@@ -23,11 +23,6 @@ pub fn receive(
     me: &mut IAm,
     enclave: &mut Enclave,
 ) -> Result<(ReceiveStatus, Option<Vec<Rhex>>)> {
-    // This moved to the calling function in `server.rs` so it doesn't
-    // rerun with each cycle of the handle_connection()
-    // let mut enclave = Enclave::new(Some(config.enclave.clone()));
-    // enclave.populate()?;
-
     // Process the Rhex to see where we are
     match rhex.sigs.len() {
         // No sigs = No author... this I guess could at one point offer

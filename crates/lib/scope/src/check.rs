@@ -1,9 +1,13 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use rhex::{Rhex, check::CheckStatus};
+use rhex::{
+    Rhex,
+    check::CheckStatus,
+    signature::RhexSignatureType::{Observer, Quorum},
+};
 
-use crate::Scope;
+use crate::{Scope, ushers::UsherRole};
 
 impl Scope {
     /// # check_same_scope
@@ -60,6 +64,76 @@ impl Scope {
         if !submittable {
             return Ok(CheckStatus::RtNotAllowed);
         }
+        Ok(CheckStatus::Success)
+    }
+
+    /// # check_quorum
+    ///
+    /// Checks the quorum count, and then iterates over the sigs to
+    /// make sure they are valid for this submission
+    ///
+    pub fn check_quorum_and_observers(&self, rhex: &Rhex, time: &u64) -> Result<CheckStatus> {
+        let all_ushers = self.ushers_by_role(time.clone())?;
+        let mut quorum_ushers = Vec::new();
+        for usher in all_ushers {
+            if usher.0 == UsherRole::Quorum {
+                quorum_ushers.push(usher.1);
+            }
+        }
+        let policy = self.get_policy_at(time.clone());
+        let groups = self.member_of_at(rhex.intent.author.clone(), time.clone())?;
+
+        // Get the window so we know if quorum sigs are within it
+        let window = policy.get_window(&rhex.intent.rt, &groups)?;
+
+        // Make separate vecs for the quorum and observer signatures
+        let mut pos: u8 = 0;
+        let mut quorum_sigs = Vec::new();
+        let mut observer_sigs = Vec::new();
+        for sig in rhex.sigs.iter() {
+            match sig.t {
+                Quorum(time) | Observer(time) => {
+                    if time < rhex.context.at {
+                        return Ok(CheckStatus::SignatureInvalid(pos));
+                    }
+                    if (time - rhex.context.at) < window {
+                        match sig.t {
+                            Quorum(_) => {
+                                if quorum_ushers.contains(&sig.pk) {
+                                    quorum_sigs.push(sig.clone());
+                                }
+                            }
+                            Observer(_) => observer_sigs.push(sig.clone()),
+                            _ => continue,
+                        }
+                    } else {
+                        return Ok(CheckStatus::SignatureNotInWindow(pos));
+                    }
+                }
+                _ => continue,
+            }
+            pos += 1;
+        }
+
+        // Check to see if the number of sigs even matches what we
+        // provided in the R⬢
+        let k = policy.get_k(&rhex.intent.rt, &groups)? as usize;
+        let o = policy.get_o(&rhex.intent.rt, &groups)? as usize;
+        let quorum_count = quorum_sigs.len();
+        let observer_count = quorum_sigs.len() + observer_sigs.len();
+        if quorum_count < k {
+            return Ok(CheckStatus::QuorumCountUnder {
+                provided: quorum_count,
+                k,
+            });
+        }
+        if observer_count < o {
+            return Ok(CheckStatus::ObserverCountUnder {
+                provided: observer_count,
+                o,
+            });
+        }
+
         Ok(CheckStatus::Success)
     }
 
@@ -123,10 +197,11 @@ impl Scope {
     /// This is similar to `self.full_check` except this also checks
     /// `rhex.curr` to see if it's correct and the overall record size
     ///
-    pub fn final_check(&self, rhex: &Rhex) -> Result<Vec<CheckStatus>> {
+    pub fn final_check(&self, rhex: &Rhex, time: &u64) -> Result<Vec<CheckStatus>> {
         let mut outputs = Vec::new();
         let mut full = self.full_check(rhex)?;
         outputs.append(&mut full);
+        outputs.push(self.check_quorum_and_observers(rhex, time)?);
         outputs.push(rhex.check_curr_hash()?);
         outputs.push(rhex.check_total_size()?);
 
