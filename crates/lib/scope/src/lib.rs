@@ -16,12 +16,14 @@ pub mod can_submit;
 pub mod check;
 pub mod from_chain;
 pub mod get_policy_at;
+pub mod manage;
 pub mod membership;
 pub mod policy;
 pub mod process_key;
 pub mod rule;
 pub mod ushers;
 pub mod validate;
+pub mod walk;
 
 #[derive(Debug, Clone)]
 pub struct Scope {

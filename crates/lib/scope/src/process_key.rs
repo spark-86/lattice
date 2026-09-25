@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Ok, Result};
 use rhex::{Rhex, data::RhexData};
 use serde_json::Value;
 

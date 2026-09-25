@@ -1,5 +1,6 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use minicbor::{Decode, Encode};
+use rhex::{Rhex, data::RhexData};
 
 use crate::rule::Rule;
 
@@ -193,5 +194,18 @@ impl Policy {
             }
         }
         Err(anyhow::anyhow!("Not a valid rule axis"))
+    }
+
+    /// # process_policy_set(rhex)
+    ///
+    /// This takes a R⬢ and pulls the data out to reconstitue back
+    /// into a policy that we can just set.
+    pub fn process_policy_set(rhex: &Rhex) -> Result<Self> {
+        let data: RhexData = minicbor::decode(&rhex.data)?;
+        let policy: Policy = match data {
+            RhexData::Binary(b) => minicbor::decode(&b)?,
+            _ => bail!("Invalid RhexData type on policy:set"),
+        };
+        Ok(policy)
     }
 }
